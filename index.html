@@ -1450,7 +1450,7 @@ setupCalNav();
   renderBoard('board-pengendalian', onlyCurrentYear(casesPengendalian), TAHAP_LABEL_PENGENDALIAN);
   renderBoard('board-sengketa', casesSengketa, STATUS_LABEL_SENGKETA_REAL);
   renderBoard('board-konflik', onlyCurrentYear(casesKonflik), TAHAP_LABEL_SENGKETA);
-  renderJadwalColumn('jadwal-perkara', cases.filter(c=> c.jadwalReal !== false), STATUS_LABEL_PERKARA);
+  renderJadwalColumn('jadwal-perkara', cases.filter(c=> c.jadwalReal !== false && new Date(c.jadwal) >= todayMidnight()), STATUS_LABEL_PERKARA);
   renderJadwalColumn('jadwal-pengendalian', casesPengendalian, TAHAP_LABEL_PENGENDALIAN);
   renderJadwalColumn('jadwal-sengketa', [], null); // Sengketa asli tidak punya kolom jadwal sidang
   initSpotlight();
