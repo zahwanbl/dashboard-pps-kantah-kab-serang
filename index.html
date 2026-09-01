@@ -428,6 +428,18 @@
     letter-spacing:.3px; text-transform:uppercase; font-weight:600;
   }
 
+  .status-badge{
+    display:inline-block; font-size:11px; font-weight:600; padding:3px 10px; border-radius:10px;
+    white-space:nowrap;
+  }
+  .st-putusan{ background:var(--green-soft); color:var(--green); }
+  .st-proses{ background:var(--blue-soft); color:var(--blue); }
+  .st-cabut{ background:var(--red-soft); color:var(--red); }
+  .st-damai{ background:var(--gold-soft); color:#7A5A15; }
+  .st-selesai{ background:var(--green-soft); color:var(--green); }
+  .st-banding, .st-kasasi{ background:#E7DEEF; color:#6A3E8C; }
+  .st-gugur, .st-lainnya{ background:var(--bg-alt); color:var(--ink-soft); }
+
   footer{
     padding:10px clamp(16px,3vw,40px); border-top:1px solid var(--line);
     display:flex; justify-content:space-between; font-size:11.5px; color:var(--ink-faint);
@@ -813,37 +825,7 @@ window.addEventListener('load', ()=>{
   );
 });
 
-const cases = [
-  { reg:"TEST-01/2026", pihak:"[UJI COBA] Data Tes Notifikasi", lawan:"Reminder System", objek:"Data ini cuma buat tes banner & notifikasi — hapus setelah selesai dicoba", tahap:"putusan", jadwal:"2026-09-01", tk1:null, banding:null, kasasi:null, pk:null },
-  { reg:"33/Pdt.G/2024/PN.Sg", pihak:"R. Aditya Nugraha", lawan:"Fatah Aldi", objek:"Tanah Sawah, Ds. Cikande", tahap:"relaas", jadwal:"2026-09-02", tk1:null, banding:null, kasasi:null, pk:null, lat:"-6.1637", lng:"106.1567" },
-  { reg:"34/Pdt.G/2024/PN.Sg", pihak:"PT. Duta Prakasa Mandiri", lawan:"Kartol Alfi", objek:"Tanah Kavling, Cikande", tahap:"putusan", jadwal:"2026-09-05", tk1:"22/6/26", banding:null, kasasi:null, pk:null, petaUrl:"https://upload.wikimedia.org/wikipedia/commons/thumb/8/8a/Banten_Indonesia_location_map.svg/640px-Banten_Indonesia_location_map.svg.png" },
-  { reg:"25/Pdt.G/2024/PN.Sg", pihak:"Indriana Santoso", lawan:"Muhammad Nur Fadli", objek:"Tanah Darat, Kel. Kramatwatu", tahap:"pembuktian", jadwal:"2026-09-08", tk1:null, banding:null, kasasi:null, pk:null },
-  { reg:"18/Pdt.G/2024/PN.Sg", pihak:"Sahad", lawan:"Warno Sutrisno", objek:"Bidang, Cikande No.82", tahap:"mediasi", jadwal:"2026-09-09", tk1:null, banding:null, kasasi:null, pk:null },
-  { reg:"29/Pdt.G/2024/PN.Sg", pihak:"Wagimin", lawan:"Sri Handayani", objek:"HGB No.157", tahap:"panggilan", jadwal:"2026-09-11", tk1:null, banding:null, kasasi:null, pk:null },
-  { reg:"31/Pdt.G/2024/PN.Sg", pihak:"Marto Kesuma", lawan:"Wawan Hidayat", objek:"SHM.10, Anyer Baru", tahap:"kesimpulan", jadwal:"2026-09-12", tk1:null, banding:null, kasasi:null, pk:null },
-  { reg:"27/Pdt.G/2024/PN.Sg", pihak:"Yani Handoko", lawan:"Rahmat Fauzi", objek:"Pekarangan Kubang Serang", tahap:"jawaban", jadwal:"2026-09-13", tk1:null, banding:null, kasasi:null, pk:null },
-  { reg:"23/Pdt.G/2024/PN.Sg", pihak:"Sasan Bin Wagiman", lawan:"Iksan Bin Naguman", objek:"SHM.61, Pontang Cilegon", tahap:"replik", jadwal:"2026-09-15", tk1:null, banding:null, kasasi:null, pk:null },
-  { reg:"30/Pdt.G/2024/PN.Sg", pihak:"Rusen", lawan:"Desa Setos Cibanteng", objek:"Tanah Desa, Cibanteng", tahap:"duplik", jadwal:"2026-09-18", tk1:null, banding:null, kasasi:null, pk:null },
-  { reg:"32/Pdt.G/2024/PN.Sg", pihak:"Rasmid Fani", lawan:"Pemdes Tanah Nurip", objek:"Tanah Kas Desa", tahap:"putusan_sela", jadwal:"2026-09-20", tk1:null, banding:null, kasasi:null, pk:null },
-  { reg:"24/Pdt.G/2024/PN.Sg", pihak:"Sarah Aas", lawan:"Jatnika Br. Ginting", objek:"SHM 18, Kp. Cidokom", tahap:"saksi", jadwal:"2026-09-21", tk1:null, banding:null, kasasi:null, pk:null },
-  { reg:"19/Pdt.G/2024/PN.Sg", pihak:"Ujud Jamaludin", lawan:"Moden Bin H. Duraisin", objek:"Lahan Perkebunan Karet", tahap:"hasil_mediasi", jadwal:"2026-09-24", tk1:null, banding:null, kasasi:null, pk:null },
-  { reg:"14/Pdt.G/2021/PN.Sg", pihak:"H. Junaedi", lawan:"Kartika Sari", objek:"SHM.42, Ciruas", tahap:"putusan", jadwal:"2021-04-12", tk1:"14/2/21", banding:"9/8/21", kasasi:"3/1/22", pk:null },
-  { reg:"22/Pdt.G/2021/PN.Sg", pihak:"Desa Kaserangan", lawan:"PT. Serang Makmur", objek:"Tanah Kas Desa, Kaserangan", tahap:"putusan", jadwal:"2021-07-20", tk1:"20/5/21", banding:null, kasasi:null, pk:null },
-  { reg:"05/Pdt.G/2021/PN.Sg", pihak:"Wartono Bin Sukra", lawan:"Ny. Dariyah", objek:"HGB 88, Pontang", tahap:"putusan", jadwal:"2021-11-03", tk1:"1/10/21", banding:null, kasasi:null, pk:null },
-  { reg:"08/Pdt.G/2022/PN.Sg", pihak:"Kel. Tani Berkah", lawan:"PT. Anugerah Lestari", objek:"Lahan Sawah, Kragilan", tahap:"putusan", jadwal:"2022-03-15", tk1:"10/2/22", banding:"5/7/22", kasasi:null, pk:null },
-  { reg:"17/Pdt.G/2022/PN.Sg", pihak:"Sumarni", lawan:"Ahmad Dahlan", objek:"SHM.203, Baros", tahap:"putusan", jadwal:"2022-06-28", tk1:"20/5/22", banding:null, kasasi:null, pk:null },
-  { reg:"29/Pdt.G/2022/PN.Sg", pihak:"H. Sobandi", lawan:"Rukmini", objek:"Pekarangan, Pabuaran", tahap:"putusan", jadwal:"2022-10-09", tk1:"1/9/22", banding:null, kasasi:null, pk:null },
-  { reg:"03/Pdt.G/2023/PN.Sg", pihak:"PT. Karya Mulia", lawan:"Ny. Titin Suryani", objek:"HGU, Waringinkurung", tahap:"putusan", jadwal:"2023-02-18", tk1:"14/1/23", banding:"8/6/23", kasasi:"12/11/23", pk:"4/4/24" },
-  { reg:"16/Pdt.G/2023/PN.Sg", pihak:"Warga Kp. Kadu Agung", lawan:"Pemdes Kadu Agung", objek:"Tanah Kas Desa, Kadu Agung", tahap:"putusan", jadwal:"2023-05-22", tk1:"25/4/23", banding:null, kasasi:null, pk:null },
-  { reg:"27/Pdt.G/2023/PN.Sg", pihak:"Dedi Setiawan", lawan:"Herman Sutisna", objek:"SHM.77, Bojonegara", tahap:"putusan", jadwal:"2023-09-11", tk1:"1/8/23", banding:null, kasasi:null, pk:null },
-  { reg:"31/Pdt.G/2023/PN.Sg", pihak:"Koperasi Sinar Tani", lawan:"CV. Bumi Serang", objek:"Lahan Produksi, Tunjung Teja", tahap:"putusan", jadwal:"2023-12-06", tk1:"1/11/23", banding:null, kasasi:null, pk:null },
-  { reg:"11/Pdt.G/2024/PN.Sg", pihak:"Ny. Rohaeni", lawan:"H. Dede Kurnia", objek:"SHM.154, Cinangka", tahap:"putusan", jadwal:"2024-04-02", tk1:"20/2/24", banding:null, kasasi:null, pk:null },
-  { reg:"20/Pdt.G/2024/PN.Sg", pihak:"Ahmad Wahyudi", lawan:"PT. Serang Agro Jaya", objek:"Tanah Kebun, Gunungsari", tahap:"putusan", jadwal:"2024-08-14", tk1:"1/7/24", banding:"20/12/24", kasasi:null, pk:null },
-  { reg:"35/Pdt.G/2024/PN.Sg", pihak:"Warga Ds. Kalodran", lawan:"Pemkab Serang", objek:"Ganti Rugi Lahan Jalan, Kalodran", tahap:"putusan", jadwal:"2024-11-28", tk1:"15/10/24", banding:null, kasasi:null, pk:null },
-  { reg:"06/Pdt.G/2025/PN.Sg", pihak:"H. Encep Supriatna", lawan:"Ny. Wiwin Winarsih", objek:"SHM.61, Ciomas", tahap:"putusan", jadwal:"2025-03-19", tk1:"5/2/25", banding:null, kasasi:null, pk:null },
-  { reg:"15/Pdt.G/2025/PN.Sg", pihak:"Gapoktan Sri Rejeki", lawan:"PT. Nusa Bumi", objek:"Lahan Pertanian, Petir", tahap:"kesimpulan", jadwal:"2025-06-25", tk1:null, banding:null, kasasi:null, pk:null },
-  { reg:"24/Pdt.G/2025/PN.Sg", pihak:"Ny. Maryati", lawan:"Bambang Hermawan", objek:"HGB 33, Kramatwatu", tahap:"putusan", jadwal:"2025-10-08", tk1:"25/9/25", banding:null, kasasi:null, pk:null },
-];
+let cases = [];
 
 const casesPengendalian = [
   { reg:"PGD-01/2026", pihak:"Warga Ds. Ciwarna", lawan:"PT. Agro Lestari", objek:"Verifikasi bidang tanah HGU", tahap:"pemeriksaan_persiapan", jadwal:"2026-09-06", tk1:null, banding:null, kasasi:null, pk:null },
@@ -856,20 +838,7 @@ const casesPengendalian = [
   { reg:"PGD-14/2024", pihak:"Ny. Sumirah", lawan:"PT. Wijaya Sentosa", objek:"Pemeriksaan fisik & spasial HGB", tahap:"putusan", jadwal:"2024-09-25", tk1:"12/8/24", banding:null, kasasi:null, pk:null },
   { reg:"PGD-07/2025", pihak:"Warga Ds. Curug", lawan:"PT. Karya Bumi", objek:"Verifikasi bidang tanah kawasan industri", tahap:"putusan", jadwal:"2025-07-11", tk1:"20/6/25", banding:null, kasasi:null, pk:null },
 ];
-const casesSengketa = [
-  { reg:"SKT-01/2026", pihak:"Ahmad Junaedi", lawan:"Yayasan Al-Hikmah", objek:"Sengketa waris tanah wakaf", tahap:"pengkajian", jadwal:"2026-09-04", tk1:null, banding:null, kasasi:null, pk:null },
-  { reg:"SKT-02/2026", pihak:"Koperasi Tani Jaya", lawan:"CV. Bumi Serang", objek:"Sengketa batas lahan produksi", tahap:"gelar_awal", jadwal:"2026-09-08", tk1:null, banding:null, kasasi:null, pk:null },
-  { reg:"SKT-03/2026", pihak:"Dedi Kurniawan", lawan:"Hj. Maimunah", objek:"Sengketa hak milik sertifikat ganda", tahap:"penelitian", jadwal:"2026-09-12", tk1:null, banding:null, kasasi:null, pk:null },
-  { reg:"SKT-04/2026", pihak:"Warga Kp. Cilentung", lawan:"PT. Karya Abadi", objek:"Sengketa tapal batas lahan warga", tahap:"ekspos", jadwal:"2026-09-15", tk1:null, banding:null, kasasi:null, pk:null },
-  { reg:"SKT-05/2026", pihak:"H. Nasrullah", lawan:"Kel. Suparman", objek:"Sengketa waris tanah keluarga", tahap:"rakor", jadwal:"2026-09-19", tk1:null, banding:null, kasasi:null, pk:null },
-  { reg:"SKT-06/2026", pihak:"Pemdes Cibojong", lawan:"Yayasan Nurul Iman", objek:"Sengketa tanah kas desa", tahap:"gelar_akhir", jadwal:"2026-09-22", tk1:null, banding:null, kasasi:null, pk:null },
-  { reg:"SKT-07/2026", pihak:"Ny. Halimah", lawan:"Ridwan Effendi", objek:"Sengketa sertifikat ganda", tahap:"penyelesaian", jadwal:"2026-09-25", tk1:"10/9/26", banding:null, kasasi:null, pk:null },
-  { reg:"SKT-09/2021", pihak:"Warga Kp. Nagreg", lawan:"H. Dulmatin", objek:"Sengketa batas tanah warisan", tahap:"penyelesaian", jadwal:"2021-06-08", tk1:"20/5/21", banding:null, kasasi:null, pk:null },
-  { reg:"SKT-05/2022", pihak:"Koperasi Maju Bersama", lawan:"PT. Lahan Subur", objek:"Sengketa lahan pertanian", tahap:"penyelesaian", jadwal:"2022-09-14", tk1:"1/8/22", banding:null, kasasi:null, pk:null },
-  { reg:"SKT-11/2023", pihak:"Hj. Suryani", lawan:"Endang Suherman", objek:"Sengketa sertifikat ganda", tahap:"penyelesaian", jadwal:"2023-04-27", tk1:"15/3/23", banding:null, kasasi:null, pk:null },
-  { reg:"SKT-03/2024", pihak:"Pemdes Walikukun", lawan:"PT. Serang Konstruksi", objek:"Sengketa tanah kas desa", tahap:"penyelesaian", jadwal:"2024-10-19", tk1:"5/9/24", banding:null, kasasi:null, pk:null },
-  { reg:"SKT-14/2025", pihak:"Warga Kp. Gelam", lawan:"H. Marzuki", objek:"Sengketa waris tanah keluarga", tahap:"gelar_akhir", jadwal:"2025-08-30", tk1:null, banding:null, kasasi:null, pk:null },
-];
+let casesSengketa = [];
 const casesKonflik = [
   { reg:"KFL-01/2026", pihak:"Warga Kp. Cilame", lawan:"PT. Serang Industri", objek:"Konflik lahan relokasi pabrik", tahap:"pengkajian", jadwal:"2026-09-06", tk1:null, banding:null, kasasi:null, pk:null },
   { reg:"KFL-02/2026", pihak:"Gapoktan Sido Mukti", lawan:"Dinas PUPR Kab. Serang", objek:"Konflik pembebasan lahan jalan", tahap:"gelar_awal", jadwal:"2026-09-10", tk1:null, banding:null, kasasi:null, pk:null },
@@ -928,6 +897,46 @@ const TAHAP_LABEL_PENGENDALIAN = {
   putusan:{ label:"Putusan" },
 };
 
+/* Label status ASLI (dari Google Sheets) — dipakai khusus Perkara & Sengketa */
+const STATUS_LABEL_PERKARA = {
+  putusan:{ label:"Putusan" },
+  proses:{ label:"Proses" },
+  cabut:{ label:"Cabut" },
+  damai:{ label:"Damai" },
+  banding:{ label:"Banding" },
+  kasasi:{ label:"Kasasi" },
+  gugur:{ label:"Gugur" },
+  lainnya:{ label:"Lainnya" },
+};
+const STATUS_LABEL_SENGKETA_REAL = {
+  proses:{ label:"Dalam Proses" },
+  selesai:{ label:"Selesai" },
+};
+const STATUS_BADGE_CLASS = {
+  putusan:'st-putusan', proses:'st-proses', cabut:'st-cabut', damai:'st-damai',
+  banding:'st-banding', kasasi:'st-kasasi', gugur:'st-gugur', lainnya:'st-lainnya', selesai:'st-selesai',
+};
+
+/* ============ SUMBER DATA ASLI (Google Apps Script Web App) ============ */
+/* Ganti dua nilai ini sesuai punya kamu setelah Apps Script di-deploy */
+const DATA_SOURCE_URL = "https://script.google.com/macros/s/AKfycbxjKUzkLOfNWzewXA2_R-KQxhPdxNkhBJFcqdxF9YC_5o6YGiJGynnUyc6NMepxNVaVNQ/exec";
+const DATA_SOURCE_KEY = "pps.atrbpn.kantah.kab.srg";
+
+async function loadRealData(){
+  try{
+    const res = await fetch(`${DATA_SOURCE_URL}?key=${encodeURIComponent(DATA_SOURCE_KEY)}`);
+    if(!res.ok) throw new Error('HTTP ' + res.status);
+    const json = await res.json();
+    if(json.error) throw new Error(json.error);
+    cases = json.perkara || [];
+    casesSengketa = json.sengketa || [];
+    return true;
+  }catch(err){
+    console.error('Gagal ambil data Perkara/Sengketa:', err);
+    return false;
+  }
+}
+
 function renderBoard(containerId, dataset, labels){
   labels = labels || TAHAP_LABEL;
   const board = document.getElementById(containerId);
@@ -950,8 +959,12 @@ function renderBoard(containerId, dataset, labels){
 function renderJadwalColumn(containerId, dataset, labels){
   const el = document.getElementById(containerId);
   const sorted = [...dataset].sort((a,b)=> new Date(a.jadwal) - new Date(b.jadwal));
+  if(sorted.length === 0){
+    el.innerHTML = `<div style="color:var(--ink-faint); font-size:12.5px; padding:12px;">Belum ada data jadwal sidang tercatat.</div>`;
+    return;
+  }
   el.innerHTML = sorted.map(c=>{
-    const agenda = labels ? ((labels[c.tahap] && labels[c.tahap].label) || c.tahap) : null;
+    const agenda = c.agenda || (labels ? ((labels[c.tahap] && labels[c.tahap].label) || c.tahap) : null);
     return `<div class="jrow" data-reg="${c.reg}">
       <div class="jtgl">${fmtDate(c.jadwal)}</div>
       <div class="jpihak">${c.pihak} vs ${c.lawan}</div>
@@ -966,9 +979,10 @@ function todayMidnight(){ const d = new Date(); d.setHours(0,0,0,0); return d; }
 
 function nearestUpcoming(list, n){
   const today = todayMidnight();
-  const upcoming = sortByDateAsc(list).filter(c=> new Date(c.jadwal) >= today);
+  const realDated = list.filter(c=> c.jadwalReal !== false);
+  const upcoming = sortByDateAsc(realDated).filter(c=> new Date(c.jadwal) >= today);
   if(upcoming.length) return upcoming.slice(0, n);
-  return sortByDateAsc(list).slice(-n);
+  return sortByDateAsc(realDated).slice(-n);
 }
 
 let spotlightSorted = sortByDateAsc(cases);
@@ -978,27 +992,28 @@ let tvDetailIdx = 0;
 
 function indexOfNearestUpcoming(list){
   const today = todayMidnight();
-  const idx = list.findIndex(c=> new Date(c.jadwal) >= today);
-  return idx === -1 ? list.length - 1 : idx;
+  const idx = list.findIndex(c=> c.jadwalReal !== false && new Date(c.jadwal) >= today);
+  return idx === -1 ? Math.max(0, list.length - 1) : idx;
 }
 
 function initSpotlight(){
-  spotlightSorted = sortByDateAsc(cases);
+  spotlightSorted = sortByDateAsc(cases.filter(c=> c.jadwalReal !== false)).concat(cases.filter(c=> c.jadwalReal === false));
   spotlightIndex = indexOfNearestUpcoming(spotlightSorted);
 }
 
 function renderSpotlightCase(c, navText){
-  const info = TAHAP_LABEL_PERKARA[c.tahap];
+  const info = STATUS_LABEL_PERKARA[c.tahap] || { label: c.tahap };
   document.getElementById('spotlight').innerHTML = `
     <div>
       <div class="reg">${c.reg}</div>
       <h2>${c.pihak} <span style="color:var(--ink-faint); font-weight:400;">vs</span> ${c.lawan}</h2>
       <div class="field"><div class="label">Objek Perkara</div><div class="val">${c.objek}</div></div>
-      <div class="field"><div class="label">Agenda / Tahap</div><div class="val">${info.label}</div></div>
-      <div class="field"><div class="label">Jadwal Sidang</div><div class="val">${fmtDate(c.jadwal)}</div></div>
-      <div class="field"><div class="label">Putusan</div><div class="val">${c.tk1 ? c.tk1 : '&mdash; belum ada'}</div></div>
+      <div class="field"><div class="label">Letak Tanah</div><div class="val">${c.letak || '-'}</div></div>
+      <div class="field"><div class="label">Agenda</div><div class="val">${c.agenda || '&mdash; belum tercatat'}</div></div>
+      <div class="field"><div class="label">Jadwal Sidang</div><div class="val">${c.jadwalReal ? fmtDate(c.jadwal) : '&mdash; belum tercatat'}</div></div>
+      <div class="field"><div class="label">Status</div><div class="val"><span class="status-badge ${STATUS_BADGE_CLASS[c.tahap]||''}">${info.label}</span></div></div>
     </div>
-    <div class="stamp">${c.tk1 ? 'SUDAH<br>DIPUTUS' : 'DALAM<br>PROSES'}</div>
+    <div class="stamp">${c.tahap==='putusan' ? 'SUDAH<br>DIPUTUS' : (c.tahap==='proses' ? 'DALAM<br>PROSES' : info.label.toUpperCase())}</div>
     ${renderMapslot(c)}
   `;
   const posEl = document.getElementById('spotlightPos');
@@ -1061,17 +1076,24 @@ function goToDetailByReg(reg){
 });
 
 function regNumber(reg){
-  const m = String(reg).match(/^(\d+)/);
+  const m = String(reg).match(/(\d+)/);
   return m ? parseInt(m[1], 10) : 0;
 }
 
-function renderRekap(suffix, dataset, labels, yearFilter, searchTerm){
+function yearFromJadwal(c){ return String(new Date(c.jadwal).getFullYear()); }
+function yearFromReg(c){
+  const m = String(c.reg).match(/(\d{4})\s*$/);
+  return m ? m[1] : yearFromJadwal(c);
+}
+
+function renderRekap(suffix, dataset, labels, yearFilter, searchTerm, yearOf){
+  yearOf = yearOf || yearFromJadwal;
   yearFilter = yearFilter || 'all';
   searchTerm = (searchTerm || '').trim().toLowerCase();
   const tbody = document.getElementById('rekapBody' + suffix);
   let filtered = [...dataset].sort((a,b)=> regNumber(a.reg) - regNumber(b.reg) || new Date(a.jadwal) - new Date(b.jadwal));
   if(yearFilter !== 'all'){
-    filtered = filtered.filter(c=> String(new Date(c.jadwal).getFullYear()) === yearFilter);
+    filtered = filtered.filter(c=> yearOf(c) === yearFilter);
   }
   if(searchTerm){
     filtered = filtered.filter(c=>
@@ -1079,7 +1101,7 @@ function renderRekap(suffix, dataset, labels, yearFilter, searchTerm){
     );
   }
   tbody.innerHTML = filtered.map((c,i)=>{
-    const agenda = (labels[c.tahap] && labels[c.tahap].label) || c.tahap;
+    const agenda = c.agenda || (labels[c.tahap] && labels[c.tahap].label) || c.tahap;
     const cell = v => v ? v : '<span class="center">&mdash;</span>';
     return `<tr data-reg="${c.reg}">
       <td class="center">${i+1}</td>
@@ -1087,7 +1109,7 @@ function renderRekap(suffix, dataset, labels, yearFilter, searchTerm){
       <td>${c.pihak} vs ${c.lawan}</td>
       <td>${c.objek}</td>
       <td>${agenda}</td>
-      <td class="mono">${fmtDate(c.jadwal)}</td>
+      <td class="mono">${c.jadwalReal === false ? '<span class="center">&mdash;</span>' : fmtDate(c.jadwal)}</td>
       <td class="center">${cell(c.tk1)}</td>
       <td class="center">${cell(c.banding)}</td>
       <td class="center">${cell(c.kasasi)}</td>
@@ -1101,8 +1123,9 @@ function renderRekap(suffix, dataset, labels, yearFilter, searchTerm){
     `Menampilkan <strong>${filtered.length} kasus</strong> &middot; ${yearLabel}${searchLabel}`;
 }
 
-function setupYearFilter(suffix, dataset, labels){
-  const years = [...new Set(dataset.map(c=> String(new Date(c.jadwal).getFullYear())))].sort();
+function setupYearFilter(suffix, dataset, labels, yearOf){
+  yearOf = yearOf || yearFromJadwal;
+  const years = [...new Set(dataset.map(yearOf))].sort();
   const currentYear = String(new Date().getFullYear());
   const sel = document.getElementById('rekapYearFilter' + suffix);
   sel.innerHTML = `<option value="all">Semua Tahun</option>` +
@@ -1110,7 +1133,7 @@ function setupYearFilter(suffix, dataset, labels){
   if(years.includes(currentYear)) sel.value = currentYear;
 
   const search = document.getElementById('rekapSearch' + suffix);
-  const apply = ()=> renderRekap(suffix, dataset, labels, sel.value, search.value);
+  const apply = ()=> renderRekap(suffix, dataset, labels, sel.value, search.value, yearOf);
   sel.addEventListener('change', apply);
   search.addEventListener('input', apply);
   apply();
@@ -1218,14 +1241,15 @@ function tomorrowStr(){
 function findSidangBesok(){
   const target = tomorrowStr();
   const kategoriList = [
-    { nama:'Perkara', data:cases, labels:TAHAP_LABEL_PERKARA },
+    { nama:'Perkara', data:cases, labels:STATUS_LABEL_PERKARA },
     { nama:'Pengendalian', data:casesPengendalian, labels:TAHAP_LABEL_PENGENDALIAN },
-    { nama:'Sengketa', data:casesSengketa, labels:TAHAP_LABEL_SENGKETA },
+    { nama:'Sengketa', data:casesSengketa, labels:STATUS_LABEL_SENGKETA_REAL },
     { nama:'Konflik', data:casesKonflik, labels:TAHAP_LABEL_SENGKETA },
   ];
   const matches = [];
   kategoriList.forEach(k=>{
     k.data.forEach(c=>{
+      if(c.jadwalReal === false) return; // kasus tanpa tanggal asli, jangan dihitung
       if(c.jadwal === target){
         const agenda = (k.labels[c.tahap] && k.labels[c.tahap].label) || c.tahap;
         matches.push({ ...c, kategori:k.nama, agenda });
@@ -1290,12 +1314,14 @@ function maybeSendBrowserNotification(matches){
 }
 
 /* ============ KALENDER ============ */
-const CAL_CATEGORIES = [
-  { key:'pengendalian', nama:'Pengendalian', data:casesPengendalian },
-  { key:'sengketa', nama:'Sengketa', data:casesSengketa },
-  { key:'perkara', nama:'Perkara', data:cases },
-  { key:'konflik', nama:'Konflik', data:casesKonflik },
-];
+function getCalCategories(){
+  return [
+    { key:'pengendalian', nama:'Pengendalian', data:casesPengendalian },
+    { key:'sengketa', nama:'Sengketa', data:casesSengketa },
+    { key:'perkara', nama:'Perkara', data:cases },
+    { key:'konflik', nama:'Konflik', data:casesKonflik },
+  ];
+}
 let calYear = new Date().getFullYear();
 let calMonth = new Date().getMonth(); // 0-11
 let calSelectedDate = null; // 'YYYY-MM-DD'
@@ -1305,8 +1331,9 @@ function calDateStr(y,m,d){
 }
 function calSidangOnDate(dateStr){
   const results = [];
-  CAL_CATEGORIES.forEach(cat=>{
+  getCalCategories().forEach(cat=>{
     cat.data.forEach(c=>{
+      if(c.jadwalReal === false) return;
       if(c.jadwal === dateStr) results.push({ ...c, kategoriKey:cat.key, kategoriNama:cat.nama });
     });
   });
@@ -1412,23 +1439,36 @@ function setupCalNav(){
 }
 setupCalNav();
 
-renderBoard('board', onlyCurrentYear(cases), TAHAP_LABEL_PERKARA);
-renderBoard('board-pengendalian', onlyCurrentYear(casesPengendalian), TAHAP_LABEL_PENGENDALIAN);
-renderBoard('board-sengketa', onlyCurrentYear(casesSengketa), TAHAP_LABEL_SENGKETA);
-renderBoard('board-konflik', onlyCurrentYear(casesKonflik), TAHAP_LABEL_SENGKETA);
-renderJadwalColumn('jadwal-perkara', cases, TAHAP_LABEL_PERKARA);
-renderJadwalColumn('jadwal-pengendalian', casesPengendalian, TAHAP_LABEL_PENGENDALIAN);
-renderJadwalColumn('jadwal-sengketa', casesSengketa, TAHAP_LABEL_SENGKETA);
-initSpotlight();
-renderSpotlightManual();
-setupYearFilter('', cases, TAHAP_LABEL_PERKARA);
-setupYearFilter('-pengendalian', casesPengendalian, TAHAP_LABEL_PENGENDALIAN);
-setupYearFilter('-sengketa', casesSengketa, TAHAP_LABEL_SENGKETA);
-setupYearFilter('-konflik', casesKonflik, TAHAP_LABEL_SENGKETA);
-updateNotifBtn();
-renderReminderBanner();
-setInterval(renderReminderBanner, 15 * 60 * 1000);
-renderCalendar();
+(async function bootData(){
+  document.querySelector('main').insertAdjacentHTML('afterbegin',
+    '<div id="dataLoadingMsg" style="padding:14px 4px; color:var(--ink-soft); font-family:\'IBM Plex Mono\',monospace; font-size:12px;">Memuat data Perkara &amp; Sengketa dari Google Sheets...</div>');
+
+  const ok = await loadRealData();
+  const loadingMsg = document.getElementById('dataLoadingMsg');
+  if(loadingMsg) loadingMsg.remove();
+  if(!ok){
+    document.querySelector('main').insertAdjacentHTML('afterbegin',
+      '<div style="padding:14px; margin-bottom:10px; background:var(--red-soft); color:var(--red); border-radius:6px; font-size:12.5px; font-weight:600;">Gagal memuat data Perkara/Sengketa dari Google Sheets. Cek DATA_SOURCE_URL &amp; DATA_SOURCE_KEY di kode, atau coba muat ulang halaman.</div>');
+  }
+
+  renderBoard('board', onlyCurrentYear(cases), STATUS_LABEL_PERKARA);
+  renderBoard('board-pengendalian', onlyCurrentYear(casesPengendalian), TAHAP_LABEL_PENGENDALIAN);
+  renderBoard('board-sengketa', casesSengketa, STATUS_LABEL_SENGKETA_REAL);
+  renderBoard('board-konflik', onlyCurrentYear(casesKonflik), TAHAP_LABEL_SENGKETA);
+  renderJadwalColumn('jadwal-perkara', cases.filter(c=> c.jadwalReal !== false), STATUS_LABEL_PERKARA);
+  renderJadwalColumn('jadwal-pengendalian', casesPengendalian, TAHAP_LABEL_PENGENDALIAN);
+  renderJadwalColumn('jadwal-sengketa', [], null); // Sengketa asli tidak punya kolom jadwal sidang
+  initSpotlight();
+  renderSpotlightManual();
+  setupYearFilter('', cases, STATUS_LABEL_PERKARA, yearFromJadwal);
+  setupYearFilter('-pengendalian', casesPengendalian, TAHAP_LABEL_PENGENDALIAN, yearFromJadwal);
+  setupYearFilter('-sengketa', casesSengketa, STATUS_LABEL_SENGKETA_REAL, yearFromReg);
+  setupYearFilter('-konflik', casesKonflik, TAHAP_LABEL_SENGKETA, yearFromJadwal);
+  updateNotifBtn();
+  renderReminderBanner();
+  setInterval(renderReminderBanner, 15 * 60 * 1000);
+  renderCalendar();
+})();
 </script>
 </div>
 </body>
