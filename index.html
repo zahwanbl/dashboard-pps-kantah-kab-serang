@@ -558,7 +558,7 @@
 <main>
 
   <div class="view active" id="view-pengendalian">
-    <span class="eyebrow">Status per tahap &middot; contoh data</span>
+    <span class="eyebrow">Status per tahap &middot; belum ada data</span>
     <h2 class="viewtitle">Ringkasan Pengendalian Berjalan</h2>
     <div class="board" id="board-pengendalian"></div>
 
@@ -596,7 +596,7 @@
   </div>
 
   <div class="view" id="view-sengketa">
-    <span class="eyebrow">Status per tahap &middot; contoh data</span>
+    <span class="eyebrow">Status per tahap &middot; data asli</span>
     <h2 class="viewtitle">Ringkasan Sengketa Berjalan</h2>
     <div class="board" id="board-sengketa"></div>
 
@@ -672,7 +672,7 @@
   </div>
 
   <div class="view" id="view-konflik">
-    <span class="eyebrow">Status per tahap &middot; contoh data</span>
+    <span class="eyebrow">Status per tahap &middot; belum ada data</span>
     <h2 class="viewtitle">Ringkasan Konflik Berjalan</h2>
     <div class="board" id="board-konflik"></div>
 
@@ -845,32 +845,9 @@ window.addEventListener('load', ()=>{
 
 let cases = [];
 
-const casesPengendalian = [
-  { reg:"PGD-01/2026", pihak:"Warga Ds. Ciwarna", lawan:"PT. Agro Lestari", objek:"Verifikasi bidang tanah HGU", tahap:"pemeriksaan_persiapan", jadwal:"2026-09-06", tk1:null, banding:null, kasasi:null, pk:null },
-  { reg:"PGD-02/2026", pihak:"Kel. Tani Makmur", lawan:"Perum Perhutani", objek:"Pemeriksaan batas kawasan hutan", tahap:"jawaban_tergugat", jadwal:"2026-09-10", tk1:null, banding:null, kasasi:null, pk:null },
-  { reg:"PGD-03/2026", pihak:"H. Sutarjo", lawan:"Pemdes Sukajaya", objek:"Verifikasi data yuridis sertifikat", tahap:"pembuktian", jadwal:"2026-09-14", tk1:null, banding:null, kasasi:null, pk:null },
-  { reg:"PGD-04/2026", pihak:"Ny. Ratnasari", lawan:"PT. Cipta Karya", objek:"Pemeriksaan fisik & spasial lahan", tahap:"putusan", jadwal:"2026-09-19", tk1:"3/9/26", banding:null, kasasi:null, pk:null },
-  { reg:"PGD-11/2021", pihak:"Warga Kp. Cikadu", lawan:"Perhutani Serang", objek:"Verifikasi batas kawasan hutan lindung", tahap:"putusan", jadwal:"2021-05-14", tk1:"1/4/21", banding:null, kasasi:null, pk:null },
-  { reg:"PGD-06/2022", pihak:"Kel. Tani Mekar", lawan:"PT. Serang Agro", objek:"Verifikasi data fisik lahan HGU", tahap:"putusan", jadwal:"2022-08-02", tk1:"10/7/22", banding:null, kasasi:null, pk:null },
-  { reg:"PGD-09/2023", pihak:"Pemdes Sindangsari", lawan:"H. Rachman", objek:"Verifikasi data yuridis tanah kas desa", tahap:"putusan", jadwal:"2023-06-17", tk1:"1/5/23", banding:null, kasasi:null, pk:null },
-  { reg:"PGD-14/2024", pihak:"Ny. Sumirah", lawan:"PT. Wijaya Sentosa", objek:"Pemeriksaan fisik & spasial HGB", tahap:"putusan", jadwal:"2024-09-25", tk1:"12/8/24", banding:null, kasasi:null, pk:null },
-  { reg:"PGD-07/2025", pihak:"Warga Ds. Curug", lawan:"PT. Karya Bumi", objek:"Verifikasi bidang tanah kawasan industri", tahap:"putusan", jadwal:"2025-07-11", tk1:"20/6/25", banding:null, kasasi:null, pk:null },
-];
+const casesPengendalian = [];
 let casesSengketa = [];
-const casesKonflik = [
-  { reg:"KFL-01/2026", pihak:"Warga Kp. Cilame", lawan:"PT. Serang Industri", objek:"Konflik lahan relokasi pabrik", tahap:"pengkajian", jadwal:"2026-09-06", tk1:null, banding:null, kasasi:null, pk:null },
-  { reg:"KFL-02/2026", pihak:"Gapoktan Sido Mukti", lawan:"Dinas PUPR Kab. Serang", objek:"Konflik pembebasan lahan jalan", tahap:"gelar_awal", jadwal:"2026-09-10", tk1:null, banding:null, kasasi:null, pk:null },
-  { reg:"KFL-03/2026", pihak:"Warga Ds. Pematang", lawan:"PT. Tirta Alam", objek:"Konflik akses sumber air & lahan", tahap:"penelitian", jadwal:"2026-09-14", tk1:null, banding:null, kasasi:null, pk:null },
-  { reg:"KFL-04/2026", pihak:"Warga Kp. Sukamanah", lawan:"PT. Agro Nusantara", objek:"Konflik lahan perkebunan sawit", tahap:"ekspos", jadwal:"2026-09-17", tk1:null, banding:null, kasasi:null, pk:null },
-  { reg:"KFL-05/2026", pihak:"Kel. Tani Sejahtera", lawan:"Pemkab Serang", objek:"Konflik ganti rugi jalan tol", tahap:"rakor", jadwal:"2026-09-20", tk1:null, banding:null, kasasi:null, pk:null },
-  { reg:"KFL-06/2026", pihak:"Warga Ds. Cikeusal", lawan:"PT. Cipta Karya Sentosa", objek:"Konflik lahan kawasan industri", tahap:"gelar_akhir", jadwal:"2026-09-23", tk1:null, banding:null, kasasi:null, pk:null },
-  { reg:"KFL-07/2026", pihak:"Gapoktan Mekar Jaya", lawan:"PT. Serang Energi", objek:"Konflik lahan proyek pembangkit", tahap:"penyelesaian", jadwal:"2026-09-26", tk1:"12/9/26", banding:null, kasasi:null, pk:null },
-  { reg:"KFL-08/2021", pihak:"Warga Kp. Cikande Ilir", lawan:"PT. Wahana Sentosa", objek:"Konflik lahan pembangunan gudang", tahap:"penyelesaian", jadwal:"2021-09-02", tk1:"20/8/21", banding:null, kasasi:null, pk:null },
-  { reg:"KFL-04/2022", pihak:"Gapoktan Sumber Rejeki", lawan:"Dinas PUPR Kab. Serang", objek:"Konflik ganti rugi saluran irigasi", tahap:"penyelesaian", jadwal:"2022-11-21", tk1:"1/10/22", banding:null, kasasi:null, pk:null },
-  { reg:"KFL-10/2023", pihak:"Warga Ds. Nambo Ilir", lawan:"PT. Bumi Karawang", objek:"Konflik lahan tambak", tahap:"penyelesaian", jadwal:"2023-07-08", tk1:"15/6/23", banding:null, kasasi:null, pk:null },
-  { reg:"KFL-06/2024", pihak:"Kel. Tani Damai", lawan:"PT. Karya Konstruksi", objek:"Konflik lahan pembangunan jalan", tahap:"penyelesaian", jadwal:"2024-05-13", tk1:"22/4/24", banding:null, kasasi:null, pk:null },
-  { reg:"KFL-15/2025", pihak:"Warga Kp. Sukajadi", lawan:"PT. Serang Properti", objek:"Konflik lahan perumahan", tahap:"gelar_akhir", jadwal:"2025-12-04", tk1:null, banding:null, kasasi:null, pk:null },
-];
+const casesKonflik = [];
 
 const TAHAP_LABEL = {
   kesimpulan:{ label:"Kesimpulan", badge:"b-kesimpulan" },
