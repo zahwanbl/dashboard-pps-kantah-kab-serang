@@ -77,12 +77,23 @@
   .tab.active{ background:var(--ink); color:var(--paper); border-color:var(--ink); }
   .tvtoggle{ display:flex; align-items:center; gap:10px; font-size:13px; color:var(--ink-soft); }
   .reminder-banner{
-    display:flex; align-items:center; justify-content:space-between; gap:12px;
+    display:flex; flex-direction:column; gap:8px;
     background: linear-gradient(90deg, var(--red), #c14f38);
     color:#fff; padding:10px 20px; font-size:13.5px; font-weight:600;
-    flex-shrink:0;
+    flex-shrink:0; max-height:180px; overflow-y:auto;
   }
-  .reminder-banner span{ flex:1; }
+  .reminder-header{ display:flex; align-items:center; justify-content:space-between; gap:12px; flex-shrink:0; }
+  .reminder-list{ display:flex; flex-direction:column; gap:5px; }
+  .reminder-item{
+    display:flex; align-items:baseline; gap:9px; font-weight:500; font-size:12.5px;
+    background:rgba(255,255,255,0.14); border-radius:5px; padding:6px 11px;
+  }
+  .reminder-item .kat{
+    font-weight:700; font-size:10px; text-transform:uppercase; letter-spacing:.4px;
+    background:rgba(255,255,255,0.28); padding:2px 8px; border-radius:9px; flex-shrink:0;
+  }
+  .reminder-item .info{ flex:1; line-height:1.4; }
+  .reminder-item .agenda{ opacity:.85; font-style:italic; font-weight:400; }
   .reminder-dismiss{
     background:rgba(255,255,255,0.2); border:none; color:#fff; width:24px; height:24px;
     border-radius:50%; cursor:pointer; font-size:16px; line-height:1; flex-shrink:0;
@@ -521,8 +532,11 @@
 <div id="appContent" style="display:none;">
 
 <div class="reminder-banner" id="reminderBanner" style="display:none;">
-  <span id="reminderText"></span>
-  <button class="reminder-dismiss" id="reminderDismiss" aria-label="Tutup">&times;</button>
+  <div class="reminder-header">
+    <span id="reminderSummary"></span>
+    <button class="reminder-dismiss" id="reminderDismiss" aria-label="Tutup">&times;</button>
+  </div>
+  <div class="reminder-list" id="reminderList"></div>
 </div>
 
 <div class="stickytop">
@@ -1288,10 +1302,15 @@ function findSidangBesok(){
 function renderReminderBanner(){
   const matches = findSidangBesok();
   const banner = document.getElementById('reminderBanner');
-  const text = document.getElementById('reminderText');
+  const summary = document.getElementById('reminderSummary');
+  const list = document.getElementById('reminderList');
   if(matches.length === 0){ banner.style.display = 'none'; return; }
-  const list = matches.map(m=> `${m.kategori}: ${m.pihak} vs ${m.lawan} (${m.agenda})`).join(' &middot; ');
-  text.innerHTML = `&#9888;&#65039; Besok ada ${matches.length} sidang: ${list}`;
+  summary.innerHTML = `&#9888;&#65039; Besok ada <strong>${matches.length} agenda</strong>`;
+  list.innerHTML = matches.map(m=> `
+    <div class="reminder-item">
+      <span class="kat">${m.kategori}</span>
+      <span class="info">${m.pihak} vs ${m.lawan} <span class="agenda">&middot; ${m.agenda}</span></span>
+    </div>`).join('');
   banner.style.display = 'flex';
   maybeSendBrowserNotification(matches);
 }
