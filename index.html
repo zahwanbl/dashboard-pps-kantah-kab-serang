@@ -380,6 +380,10 @@
   .cal-daydetail-item .meta{ color:var(--ink-soft); }
 
   /* ---------- LOGIN GATE ---------- */
+  #appContent{
+    display:flex; flex-direction:column; flex:1; min-height:0;
+    height:100vh; overflow:hidden;
+  }
   .login-overlay{
     position:fixed; inset:0; z-index:1000;
     background: var(--bg);
@@ -452,6 +456,7 @@
     .trow{ grid-template-columns: 90px 1fr; }
     .trow .badge{ grid-column: 1 / -1; justify-self:start; margin-top:4px; }
     body{ height:auto; min-height:100vh; overflow-y:auto; overflow-x:hidden; }
+    #appContent{ height:auto; min-height:100vh; overflow:visible; }
     main{ overflow:visible; padding: 12px; }
     .view.active{ min-height:0; }
     header{ padding:12px 14px; flex-wrap:wrap; gap:10px; }
@@ -786,6 +791,11 @@ function decodeJwt(token){
   return JSON.parse(json);
 }
 
+function showDashboard(){
+  document.getElementById('loginOverlay').style.display = 'none';
+  document.getElementById('appContent').style.display = 'flex';
+}
+
 function handleGoogleSignIn(response){
   const errEl = document.getElementById('loginError');
   errEl.style.display = 'none';
@@ -804,12 +814,20 @@ function handleGoogleSignIn(response){
     errEl.style.display = 'block';
     return;
   }
-  document.getElementById('loginOverlay').style.display = 'none';
-  document.getElementById('appContent').style.display = '';
+  showDashboard();
   try{ sessionStorage.setItem('ppsLoggedInEmail', email); }catch(e){}
 }
 
 window.addEventListener('load', ()=>{
+  /* Kalau sebelumnya udah pernah login (masih dalam sesi browser yang sama), langsung masuk tanpa nge-Sign In ulang */
+  try{
+    const savedEmail = sessionStorage.getItem('ppsLoggedInEmail');
+    if(savedEmail && WHITELIST_EMAILS.some(e => e.toLowerCase().trim() === savedEmail.toLowerCase().trim())){
+      showDashboard();
+      return;
+    }
+  }catch(e){}
+
   if(typeof google === 'undefined' || !google.accounts){
     document.getElementById('loginError').textContent = 'Gagal memuat layanan Google Sign-In. Cek koneksi internet lalu muat ulang halaman.';
     document.getElementById('loginError').style.display = 'block';
