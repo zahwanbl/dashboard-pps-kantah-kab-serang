@@ -949,7 +949,7 @@ function renderBoard(containerId, dataset, labels){
           <div class="reg">${c.reg}</div>
           <div class="pihak">${c.pihak} vs ${c.lawan}</div>
           <div class="obj">${c.objek}</div>
-          <div class="tanggal">&#128197; ${fmtDate(c.jadwal)}</div>
+          <div class="tanggal">${c.jadwalReal ? '&#128197; '+fmtDate(c.jadwal) : '&#128196; '+(c.ket||'-')}</div>
         </div>`).join('')}</div>`;
     board.appendChild(col);
   });
@@ -1277,7 +1277,7 @@ function findSidangBesok(){
     k.data.forEach(c=>{
       if(c.jadwalReal === false) return; // kasus tanpa tanggal asli, jangan dihitung
       if(c.jadwal === target){
-        const agenda = (k.labels[c.tahap] && k.labels[c.tahap].label) || c.tahap;
+        const agenda = c.agenda || (k.labels[c.tahap] && k.labels[c.tahap].label) || c.tahap;
         matches.push({ ...c, kategori:k.nama, agenda });
       }
     });
@@ -1483,7 +1483,7 @@ setupCalNav();
   renderBoard('board-konflik', onlyCurrentYear(casesKonflik), TAHAP_LABEL_SENGKETA);
   renderJadwalColumn('jadwal-perkara', cases.filter(c=> c.jadwalReal !== false && new Date(c.jadwal) >= todayMidnight()), STATUS_LABEL_PERKARA);
   renderJadwalColumn('jadwal-pengendalian', casesPengendalian, TAHAP_LABEL_PENGENDALIAN);
-  renderJadwalColumn('jadwal-sengketa', [], null); // Sengketa asli tidak punya kolom jadwal sidang
+  renderJadwalColumn('jadwal-sengketa', casesSengketa.filter(c=> c.jadwalReal && new Date(c.jadwal) >= todayMidnight()), STATUS_LABEL_SENGKETA_REAL);
   initSpotlight();
   renderSpotlightManual();
   setupYearFilter('', cases, STATUS_LABEL_PERKARA, yearFromJadwal);
