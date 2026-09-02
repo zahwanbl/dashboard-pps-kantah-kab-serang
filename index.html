@@ -626,7 +626,7 @@
     <div class="rekap-headrow">
       <h2 class="viewtitle" style="font-size:19px; margin:0;">Rincian Sengketa</h2>
       <div class="rekap-filters">
-        <input type="text" id="rekapSearch-sengketa" class="rekap-search" placeholder="Cari nama pihak, No. Register, objek...">
+        <input type="text" id="rekapSearch-sengketa" class="rekap-search" placeholder="Cari nama pihak, objek...">
         <label class="yearfilter">
           Tahun:
           <select id="rekapYearFilter-sengketa"></select>
@@ -638,16 +638,12 @@
       <table class="rekap-table">
         <thead>
           <tr>
-            <th rowspan="2">No</th>
-            <th rowspan="2">No. Register</th>
-            <th rowspan="2">Para Pihak</th>
-            <th rowspan="2">Objek</th>
-            <th rowspan="2">Agenda</th>
-            <th rowspan="2">Jadwal</th>
-            <th colspan="4">Putusan</th>
-          </tr>
-          <tr>
-            <th>Tk. Pertama</th><th>Banding</th><th>Kasasi</th><th>PK</th>
+            <th>No</th>
+            <th>Para Pihak</th>
+            <th>Objek</th>
+            <th>Agenda</th>
+            <th>Jadwal</th>
+            <th>Status</th>
           </tr>
         </thead>
         <tbody id="rekapBody-sengketa"></tbody>
@@ -1103,8 +1099,9 @@ function yearFromReg(c){
   const m = String(c.reg).match(/(\d{4})\s*$/);
   return m ? m[1] : yearFromJadwal(c);
 }
+function yearFromField(c){ return c.tahun ? String(c.tahun) : yearFromJadwal(c); }
 
-function renderRekap(suffix, dataset, labels, yearFilter, searchTerm, yearOf){
+function renderRekap(suffix, dataset, labels, yearFilter, searchTerm, yearOf, simpleMode){
   yearOf = yearOf || yearFromJadwal;
   yearFilter = yearFilter || 'all';
   searchTerm = (searchTerm || '').trim().toLowerCase();
@@ -1120,6 +1117,19 @@ function renderRekap(suffix, dataset, labels, yearFilter, searchTerm, yearOf){
   }
   tbody.innerHTML = filtered.map((c,i)=>{
     const agenda = c.agenda || (labels[c.tahap] && labels[c.tahap].label) || c.tahap;
+    const jadwalCell = c.jadwalReal === false ? '<span class="center">&mdash;</span>' : fmtDate(c.jadwal);
+    if(simpleMode){
+      const info = labels[c.tahap] || {label:c.tahap};
+      const badge = `<span class="status-badge ${STATUS_BADGE_CLASS[c.tahap]||''}">${info.label}</span>`;
+      return `<tr data-reg="${c.reg}">
+        <td class="center">${i+1}</td>
+        <td>${c.pihak} vs ${c.lawan}</td>
+        <td>${c.objek}</td>
+        <td>${agenda}</td>
+        <td class="mono">${jadwalCell}</td>
+        <td class="center">${badge}</td>
+      </tr>`;
+    }
     const cell = v => v ? v : '<span class="center">&mdash;</span>';
     return `<tr data-reg="${c.reg}">
       <td class="center">${i+1}</td>
@@ -1127,7 +1137,7 @@ function renderRekap(suffix, dataset, labels, yearFilter, searchTerm, yearOf){
       <td>${c.pihak} vs ${c.lawan}</td>
       <td>${c.objek}</td>
       <td>${agenda}</td>
-      <td class="mono">${c.jadwalReal === false ? '<span class="center">&mdash;</span>' : fmtDate(c.jadwal)}</td>
+      <td class="mono">${jadwalCell}</td>
       <td class="center">${cell(c.tk1)}</td>
       <td class="center">${cell(c.banding)}</td>
       <td class="center">${cell(c.kasasi)}</td>
@@ -1141,7 +1151,7 @@ function renderRekap(suffix, dataset, labels, yearFilter, searchTerm, yearOf){
     `Menampilkan <strong>${filtered.length} kasus</strong> &middot; ${yearLabel}${searchLabel}`;
 }
 
-function setupYearFilter(suffix, dataset, labels, yearOf){
+function setupYearFilter(suffix, dataset, labels, yearOf, simpleMode){
   yearOf = yearOf || yearFromJadwal;
   const years = [...new Set(dataset.map(yearOf))].sort();
   const currentYear = String(new Date().getFullYear());
@@ -1151,7 +1161,7 @@ function setupYearFilter(suffix, dataset, labels, yearOf){
   if(years.includes(currentYear)) sel.value = currentYear;
 
   const search = document.getElementById('rekapSearch' + suffix);
-  const apply = ()=> renderRekap(suffix, dataset, labels, sel.value, search.value, yearOf);
+  const apply = ()=> renderRekap(suffix, dataset, labels, sel.value, search.value, yearOf, simpleMode);
   sel.addEventListener('change', apply);
   search.addEventListener('input', apply);
   apply();
@@ -1529,7 +1539,7 @@ setupCalNav();
   renderSpotlightManual();
   setupYearFilter('', cases, STATUS_LABEL_PERKARA, yearFromJadwal);
   setupYearFilter('-pengendalian', casesPengendalian, TAHAP_LABEL_PENGENDALIAN, yearFromJadwal);
-  setupYearFilter('-sengketa', casesSengketa, STATUS_LABEL_SENGKETA_REAL, yearFromReg);
+  setupYearFilter('-sengketa', casesSengketa, STATUS_LABEL_SENGKETA_REAL, yearFromField, true);
   setupYearFilter('-konflik', casesKonflik, TAHAP_LABEL_SENGKETA, yearFromJadwal);
   updateNotifBtn();
   renderReminderBanner();
