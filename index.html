@@ -563,10 +563,12 @@
   <div class="tabs toptabs" id="topTabs">
     <div class="tab toptab active" data-top="pengendalian">Pengendalian</div>
     <div class="tab toptab" data-top="sengketa">Sengketa</div>
+    <div class="tab toptab" data-top="detail-sengketa">Detail Sengketa</div>
     <div class="tab toptab" data-top="perkara">Perkara</div>
-    <div class="tab toptab" data-top="konflik">Konflik</div>
-    <div class="tab toptab" data-top="jadwal">Jadwal Mendatang</div>
     <div class="tab toptab" data-top="detail">Detail Perkara</div>
+    <div class="tab toptab" data-top="konflik">Konflik</div>
+    <div class="tab toptab" data-top="detail-konflik">Detail Konflik</div>
+    <div class="tab toptab" data-top="jadwal">Jadwal Mendatang</div>
     <div class="tab toptab" data-top="kalender">Kalender</div>
   </div>
   <div class="tvtoggle">
@@ -651,6 +653,18 @@
     </div>
   </div>
 
+  <div class="view" id="view-detail-sengketa">
+    <div class="detail-headrow">
+      <h2 class="viewtitle" style="margin:0;">Detail Sengketa</h2>
+      <div class="spotlight-nav">
+        <button class="navbtn" id="spotlightPrevSengketa">&larr; Sebelumnya</button>
+        <span class="navpos" id="spotlightPosSengketa"></span>
+        <button class="navbtn" id="spotlightNextSengketa">Berikutnya &rarr;</button>
+      </div>
+    </div>
+    <div class="spotlight" id="spotlightSengketa"></div>
+  </div>
+
   <div class="view" id="view-perkara">
     <span class="eyebrow">Status per tahap</span>
     <h2 class="viewtitle">Ringkasan Perkara Berjalan</h2>
@@ -725,6 +739,18 @@
         <tbody id="rekapBody-konflik"></tbody>
       </table>
     </div>
+  </div>
+
+  <div class="view" id="view-detail-konflik">
+    <div class="detail-headrow">
+      <h2 class="viewtitle" style="margin:0;">Detail Konflik</h2>
+      <div class="spotlight-nav">
+        <button class="navbtn" id="spotlightPrevKonflik">&larr; Sebelumnya</button>
+        <span class="navpos" id="spotlightPosKonflik"></span>
+        <button class="navbtn" id="spotlightNextKonflik">Berikutnya &rarr;</button>
+      </div>
+    </div>
+    <div class="spotlight" id="spotlightKonflik"></div>
   </div>
 
   <div class="view" id="view-detail">
@@ -1003,8 +1029,6 @@ function nearestUpcoming(list, n){
   return sortByDateAsc(realDated).slice(-n);
 }
 
-let spotlightSorted = sortByDateAsc(cases);
-let spotlightIndex = 0;
 let tvUpcomingList = [];
 let tvDetailIdx = 0;
 
@@ -1012,30 +1036,6 @@ function indexOfNearestUpcoming(list){
   const today = todayMidnight();
   const idx = list.findIndex(c=> c.jadwalReal !== false && new Date(c.jadwal) >= today);
   return idx === -1 ? Math.max(0, list.length - 1) : idx;
-}
-
-function initSpotlight(){
-  spotlightSorted = sortByDateAsc(cases.filter(c=> c.jadwalReal !== false)).concat(cases.filter(c=> c.jadwalReal === false));
-  spotlightIndex = indexOfNearestUpcoming(spotlightSorted);
-}
-
-function renderSpotlightCase(c, navText){
-  const info = STATUS_LABEL_PERKARA[c.tahap] || { label: c.tahap };
-  document.getElementById('spotlight').innerHTML = `
-    <div>
-      <div class="reg">${c.reg}</div>
-      <h2>${c.pihak} <span style="color:var(--ink-faint); font-weight:400;">vs</span> ${c.lawan}</h2>
-      <div class="field"><div class="label">Objek Perkara</div><div class="val">${c.objek}</div></div>
-      <div class="field"><div class="label">Letak Tanah</div><div class="val">${c.letak || '-'}</div></div>
-      <div class="field"><div class="label">Agenda</div><div class="val">${c.agenda || '&mdash; belum tercatat'}</div></div>
-      <div class="field"><div class="label">Jadwal Sidang</div><div class="val">${c.jadwalReal ? fmtDate(c.jadwal) : '&mdash; belum tercatat'}</div></div>
-      <div class="field"><div class="label">Status</div><div class="val"><span class="status-badge ${STATUS_BADGE_CLASS[c.tahap]||''}">${info.label}</span></div></div>
-    </div>
-    <div class="stamp">${c.tahap==='putusan' ? 'SUDAH<br>DIPUTUS' : (c.tahap==='proses' ? 'DALAM<br>PROSES' : info.label.toUpperCase())}</div>
-    ${renderMapslot(c)}
-  `;
-  const posEl = document.getElementById('spotlightPos');
-  if(posEl) posEl.textContent = navText || '';
 }
 
 function renderMapslot(c){
@@ -1061,35 +1061,112 @@ function renderMapslot(c){
   return `<div class="mapslot">Peta bidang tanah &middot; belum tersedia<br><span style="font-size:11px;">(slot untuk foto/scan peta atau titik koordinat)</span></div>`;
 }
 
-function renderSpotlightManual(){
-  const c = spotlightSorted[spotlightIndex];
-  renderSpotlightCase(c, `Sidang ${spotlightIndex+1} dari ${spotlightSorted.length} &middot; urut tanggal`);
-  document.getElementById('spotlightPrev').disabled = (spotlightIndex <= 0);
-  document.getElementById('spotlightNext').disabled = (spotlightIndex >= spotlightSorted.length - 1);
+/* Bikin 1 "controller" detail buat 1 kategori — dipakai bareng buat Perkara, Sengketa, Konflik */
+function makeDetailController(getDataset, getLabels, ids){
+  let sorted = [];
+  let index = 0;
+
+  function init(){
+    const dataset = getDataset();
+    sorted = sortByDateAsc(dataset.filter(c=> c.jadwalReal !== false)).concat(dataset.filter(c=> c.jadwalReal === false));
+    index = indexOfNearestUpcoming(sorted);
+  }
+
+  function renderCase(c, navText){
+    const labels = getLabels();
+    const info = labels[c.tahap] || { label: c.tahap };
+    document.getElementById(ids.spotlight).innerHTML = `
+      <div>
+        <div class="reg">${c.reg}</div>
+        <h2>${c.pihak} <span style="color:var(--ink-faint); font-weight:400;">vs</span> ${c.lawan}</h2>
+        <div class="field"><div class="label">Objek</div><div class="val">${c.objek}</div></div>
+        <div class="field"><div class="label">Letak Tanah</div><div class="val">${c.letak || '-'}</div></div>
+        <div class="field"><div class="label">Agenda</div><div class="val">${c.agenda || '&mdash; belum tercatat'}</div></div>
+        <div class="field"><div class="label">Jadwal</div><div class="val">${c.jadwalReal ? fmtDate(c.jadwal) : '&mdash; belum tercatat'}</div></div>
+        <div class="field"><div class="label">Status</div><div class="val"><span class="status-badge ${STATUS_BADGE_CLASS[c.tahap]||''}">${info.label}</span></div></div>
+      </div>
+      <div class="stamp">${info.label.toUpperCase()}</div>
+      ${renderMapslot(c)}
+    `;
+    const posEl = document.getElementById(ids.pos);
+    if(posEl) posEl.textContent = navText || '';
+  }
+
+  function renderManual(){
+    init(); // selalu refresh biar sinkron kalau data berubah / kategori lain diklik
+    if(sorted.length === 0){
+      document.getElementById(ids.spotlight).innerHTML =
+        `<div style="grid-column:1/-1; padding:30px; text-align:center; color:var(--ink-faint);">Belum ada data.</div>`;
+      const posEl = document.getElementById(ids.pos); if(posEl) posEl.textContent = '';
+      document.getElementById(ids.prev).disabled = true;
+      document.getElementById(ids.next).disabled = true;
+      return;
+    }
+    const c = sorted[index];
+    renderCase(c, `Kasus ${index+1} dari ${sorted.length} &middot; urut tanggal`);
+    document.getElementById(ids.prev).disabled = (index <= 0);
+    document.getElementById(ids.next).disabled = (index >= sorted.length - 1);
+  }
+
+  function prev(){ if(index > 0){ index--; renderCase(sorted[index], `Kasus ${index+1} dari ${sorted.length} &middot; urut tanggal`); document.getElementById(ids.prev).disabled=(index<=0); document.getElementById(ids.next).disabled=false; } }
+  function next(){ if(index < sorted.length - 1){ index++; renderCase(sorted[index], `Kasus ${index+1} dari ${sorted.length} &middot; urut tanggal`); document.getElementById(ids.next).disabled=(index>=sorted.length-1); document.getElementById(ids.prev).disabled=false; } }
+
+  function goTo(reg){
+    init();
+    const idx = sorted.findIndex(c=> c.reg === reg);
+    if(idx === -1) return false;
+    index = idx;
+    return true;
+  }
+
+  document.getElementById(ids.prev).addEventListener('click', ()=>{ if(!tvMode) prev(); });
+  document.getElementById(ids.next).addEventListener('click', ()=>{ if(!tvMode) next(); });
+
+  return { init, renderManual, renderCase, goTo };
 }
-function spotlightPrev(){ if(spotlightIndex > 0){ spotlightIndex--; renderSpotlightManual(); } }
-function spotlightNext(){ if(spotlightIndex < spotlightSorted.length - 1){ spotlightIndex++; renderSpotlightManual(); } }
-document.getElementById('spotlightPrev').addEventListener('click', ()=>{ if(!tvMode) spotlightPrev(); });
-document.getElementById('spotlightNext').addEventListener('click', ()=>{ if(!tvMode) spotlightNext(); });
+
+const perkaraDetail = makeDetailController(
+  ()=>cases, ()=>STATUS_LABEL_PERKARA,
+  { spotlight:'spotlight', prev:'spotlightPrev', next:'spotlightNext', pos:'spotlightPos' }
+);
+const sengketaDetail = makeDetailController(
+  ()=>casesSengketa, ()=>TAHAP_LABEL_SENGKETA,
+  { spotlight:'spotlightSengketa', prev:'spotlightPrevSengketa', next:'spotlightNextSengketa', pos:'spotlightPosSengketa' }
+);
+const konflikDetail = makeDetailController(
+  ()=>casesKonflik, ()=>TAHAP_LABEL_SENGKETA,
+  { spotlight:'spotlightKonflik', prev:'spotlightPrevKonflik', next:'spotlightNextKonflik', pos:'spotlightPosKonflik' }
+);
 
 function tvRenderDetail(){
   if(!tvUpcomingList.length) tvUpcomingList = nearestUpcoming(cases, 5);
   const c = tvUpcomingList[tvDetailIdx % tvUpcomingList.length];
-  renderSpotlightCase(c, '');
+  perkaraDetail.renderCase(c, '');
 }
 
-function goToDetailByReg(reg){
+function goToDetailByReg(reg, controller, tabName){
   if(tvMode) return;
-  const idx = spotlightSorted.findIndex(c=> c.reg === reg);
-  if(idx === -1) return;
-  spotlightIndex = idx;
-  setTopTab('detail');
+  if(controller.goTo(reg)) setTopTab(tabName);
 }
 ['board','jadwal-perkara','rekapBody'].forEach(id=>{
   const el = document.getElementById(id);
   if(el) el.addEventListener('click', e=>{
     const target = e.target.closest('[data-reg]');
-    if(target) goToDetailByReg(target.dataset.reg);
+    if(target) goToDetailByReg(target.dataset.reg, perkaraDetail, 'detail');
+  });
+});
+['board-sengketa','jadwal-sengketa','rekapBody-sengketa'].forEach(id=>{
+  const el = document.getElementById(id);
+  if(el) el.addEventListener('click', e=>{
+    const target = e.target.closest('[data-reg]');
+    if(target) goToDetailByReg(target.dataset.reg, sengketaDetail, 'detail-sengketa');
+  });
+});
+['board-konflik','rekapBody-konflik'].forEach(id=>{
+  const el = document.getElementById(id);
+  if(el) el.addEventListener('click', e=>{
+    const target = e.target.closest('[data-reg]');
+    if(target) goToDetailByReg(target.dataset.reg, konflikDetail, 'detail-konflik');
   });
 });
 
@@ -1181,14 +1258,16 @@ function fmtDate(s){
 }
 
 let currentTop = 'pengendalian';
-const LOCKED_TABS = ['jadwal','detail'];
+const LOCKED_TABS = ['jadwal','detail','detail-sengketa','detail-konflik'];
 function setTopTab(name){
   currentTop = name;
   document.querySelectorAll('.toptab').forEach(t=> t.classList.toggle('active', t.dataset.top===name));
   document.querySelectorAll('.view').forEach(v=> v.classList.remove('active'));
   document.getElementById('view-'+name).classList.add('active');
   document.body.classList.toggle('unlocked-view', !LOCKED_TABS.includes(name));
-  if(name==='detail'){ if(tvMode){ tvRenderDetail(); } else { renderSpotlightManual(); } }
+  if(name==='detail'){ if(tvMode){ tvRenderDetail(); } else { perkaraDetail.renderManual(); } }
+  if(name==='detail-sengketa'){ sengketaDetail.renderManual(); }
+  if(name==='detail-konflik'){ konflikDetail.renderManual(); }
 }
 document.querySelectorAll('.toptab').forEach(t=>{
   t.addEventListener('click', ()=>{ if(!tvMode) setTopTab(t.dataset.top); });
@@ -1252,7 +1331,7 @@ sw.addEventListener('click', ()=>{
     startAutoScroll();
   } else {
     stopAutoScroll();
-    renderSpotlightManual();
+    perkaraDetail.renderManual();
   }
 });
 
@@ -1539,8 +1618,9 @@ setupCalNav();
   renderJadwalColumn('jadwal-perkara', cases.filter(c=> c.jadwalReal !== false && new Date(c.jadwal) >= todayMidnight()), STATUS_LABEL_PERKARA);
   renderJadwalColumn('jadwal-pengendalian', casesPengendalian, TAHAP_LABEL_PENGENDALIAN);
   renderJadwalColumn('jadwal-sengketa', casesSengketa.filter(c=> c.jadwalReal && new Date(c.jadwal) >= todayMidnight()), TAHAP_LABEL_SENGKETA, false);
-  initSpotlight();
-  renderSpotlightManual();
+  perkaraDetail.renderManual();
+  sengketaDetail.renderManual();
+  konflikDetail.renderManual();
   setupYearFilter('', cases, STATUS_LABEL_PERKARA, yearFromJadwal);
   setupYearFilter('-pengendalian', casesPengendalian, TAHAP_LABEL_PENGENDALIAN, yearFromJadwal);
   setupYearFilter('-sengketa', casesSengketa, TAHAP_LABEL_SENGKETA, yearFromField, true);
