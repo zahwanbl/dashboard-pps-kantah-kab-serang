@@ -85,14 +85,19 @@
   .reminder-header{ display:flex; align-items:center; justify-content:space-between; gap:12px; flex-shrink:0; }
   .reminder-list{ display:flex; flex-direction:column; gap:5px; }
   .reminder-item{
-    display:flex; align-items:baseline; gap:9px; font-weight:500; font-size:12.5px;
-    background:rgba(255,255,255,0.14); border-radius:5px; padding:6px 11px;
+    display:flex; align-items:flex-start; gap:9px; font-weight:500; font-size:12.5px;
+    background:rgba(255,255,255,0.14); border-radius:5px; padding:7px 11px;
   }
+  .reminder-item.clickable{ cursor:pointer; transition:.12s; }
+  .reminder-item.clickable:hover{ background:rgba(255,255,255,0.24); }
   .reminder-item .kat{
     font-weight:700; font-size:10px; text-transform:uppercase; letter-spacing:.4px;
     background:rgba(255,255,255,0.28); padding:2px 8px; border-radius:9px; flex-shrink:0;
+    margin-top:1px;
   }
-  .reminder-item .info{ flex:1; line-height:1.4; }
+  .reminder-item .info{ flex:1; line-height:1.45; }
+  .reminder-item .agenda-main{ font-weight:700; font-size:13px; display:block; }
+  .reminder-item .sub{ font-weight:400; opacity:.85; font-size:11.5px; display:block; }
   .reminder-item .agenda{ opacity:.85; font-style:italic; font-weight:400; }
   .reminder-dismiss{
     background:rgba(255,255,255,0.2); border:none; color:#fff; width:24px; height:24px;
@@ -1305,12 +1310,29 @@ function renderReminderBanner(){
   const summary = document.getElementById('reminderSummary');
   const list = document.getElementById('reminderList');
   if(matches.length === 0){ banner.style.display = 'none'; return; }
-  summary.innerHTML = `&#9888;&#65039; Besok ada <strong>${matches.length} agenda</strong>`;
-  list.innerHTML = matches.map(m=> `
-    <div class="reminder-item">
+
+  const besokDate = new Date(tomorrowStr());
+  const tglLengkap = besokDate.toLocaleDateString('id-ID',{ weekday:'long', day:'numeric', month:'long', year:'numeric' });
+  summary.innerHTML = `&#9888;&#65039; <strong>${matches.length} Agenda Besok</strong> &middot; ${tglLengkap}`;
+
+  list.innerHTML = matches.map(m=>{
+    const clickable = m.kategori === 'Perkara';
+    return `<div class="reminder-item${clickable ? ' clickable' : ''}" ${clickable ? `data-reg="${m.reg}"` : ''}>
       <span class="kat">${m.kategori}</span>
-      <span class="info">${m.pihak} vs ${m.lawan} <span class="agenda">&middot; ${m.agenda}</span></span>
-    </div>`).join('');
+      <span class="info">
+        <span class="agenda-main">${m.agenda}</span>
+        <span class="sub">${m.reg} &middot; ${m.pihak} vs ${m.lawan}</span>
+      </span>
+    </div>`;
+  }).join('');
+
+  list.querySelectorAll('.reminder-item.clickable').forEach(el=>{
+    el.addEventListener('click', ()=>{
+      if(tvMode) return;
+      goToDetailByReg(el.dataset.reg);
+    });
+  });
+
   banner.style.display = 'flex';
   maybeSendBrowserNotification(matches);
 }
