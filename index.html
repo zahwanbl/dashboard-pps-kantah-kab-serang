@@ -994,7 +994,7 @@ function renderBoard(containerId, dataset, labels, showReg){
           ${showReg ? `<div class="reg">${c.reg}</div>` : ''}
           <div class="pihak">${c.pihak} vs ${c.lawan}</div>
           <div class="obj">${c.objek}</div>
-          <div class="tanggal">${c.jadwalReal ? '&#128197; '+fmtDate(c.jadwal) : '&#128196; '+(c.ket||'-')}</div>
+          <div class="tanggal">${c.jadwalReal ? '&#128197; '+fmtDate(c.jadwal) : '<span style="color:var(--ink-faint);">Belum ada jadwal</span>'}</div>
         </div>`).join('')}</div>`;
     board.appendChild(col);
   });
