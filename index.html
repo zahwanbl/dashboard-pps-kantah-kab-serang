@@ -1425,7 +1425,7 @@ function renderReminderBanner(){
   list.querySelectorAll('.reminder-item.clickable').forEach(el=>{
     el.addEventListener('click', ()=>{
       if(tvMode) return;
-      goToDetailByReg(el.dataset.reg);
+      goToDetailByReg(el.dataset.reg, perkaraDetail, 'detail');
     });
   });
 
