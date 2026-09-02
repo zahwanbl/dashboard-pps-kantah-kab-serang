@@ -951,7 +951,8 @@ async function loadRealData(){
   }
 }
 
-function renderBoard(containerId, dataset, labels){
+function renderBoard(containerId, dataset, labels, showReg){
+  showReg = showReg !== false;
   labels = labels || TAHAP_LABEL;
   const board = document.getElementById(containerId);
   board.innerHTML = '';
@@ -961,7 +962,7 @@ function renderBoard(containerId, dataset, labels){
     col.innerHTML = `<div class="col-head">${labels[key].label} <span class="count">${items.length}</span></div>
       <div class="col-body">${items.map(c=>`
         <div class="card" data-reg="${c.reg}">
-          <div class="reg">${c.reg}</div>
+          ${showReg ? `<div class="reg">${c.reg}</div>` : ''}
           <div class="pihak">${c.pihak} vs ${c.lawan}</div>
           <div class="obj">${c.objek}</div>
           <div class="tanggal">${c.jadwalReal ? '&#128197; '+fmtDate(c.jadwal) : '&#128196; '+(c.ket||'-')}</div>
@@ -970,7 +971,8 @@ function renderBoard(containerId, dataset, labels){
   });
 }
 
-function renderJadwalColumn(containerId, dataset, labels){
+function renderJadwalColumn(containerId, dataset, labels, showReg){
+  showReg = showReg !== false;
   const el = document.getElementById(containerId);
   const sorted = [...dataset].sort((a,b)=> new Date(a.jadwal) - new Date(b.jadwal));
   if(sorted.length === 0){
@@ -982,7 +984,7 @@ function renderJadwalColumn(containerId, dataset, labels){
     return `<div class="jrow" data-reg="${c.reg}">
       <div class="jtgl">${fmtDate(c.jadwal)}</div>
       <div class="jpihak">${c.pihak} vs ${c.lawan}</div>
-      <div class="jmeta">${c.reg} &middot; ${c.objek}</div>
+      <div class="jmeta">${showReg ? c.reg + ' &middot; ' : ''}${c.objek}</div>
       ${agenda ? `<div class="jagenda">${agenda}</div>` : ''}
     </div>`;
   }).join('');
@@ -1530,11 +1532,11 @@ setupCalNav();
 
   renderBoard('board', onlyCurrentYear(cases), STATUS_LABEL_PERKARA);
   renderBoard('board-pengendalian', onlyCurrentYear(casesPengendalian), TAHAP_LABEL_PENGENDALIAN);
-  renderBoard('board-sengketa', casesSengketa, STATUS_LABEL_SENGKETA_REAL);
+  renderBoard('board-sengketa', casesSengketa, STATUS_LABEL_SENGKETA_REAL, false);
   renderBoard('board-konflik', onlyCurrentYear(casesKonflik), TAHAP_LABEL_SENGKETA);
   renderJadwalColumn('jadwal-perkara', cases.filter(c=> c.jadwalReal !== false && new Date(c.jadwal) >= todayMidnight()), STATUS_LABEL_PERKARA);
   renderJadwalColumn('jadwal-pengendalian', casesPengendalian, TAHAP_LABEL_PENGENDALIAN);
-  renderJadwalColumn('jadwal-sengketa', casesSengketa.filter(c=> c.jadwalReal && new Date(c.jadwal) >= todayMidnight()), STATUS_LABEL_SENGKETA_REAL);
+  renderJadwalColumn('jadwal-sengketa', casesSengketa.filter(c=> c.jadwalReal && new Date(c.jadwal) >= todayMidnight()), STATUS_LABEL_SENGKETA_REAL, false);
   initSpotlight();
   renderSpotlightManual();
   setupYearFilter('', cases, STATUS_LABEL_PERKARA, yearFromJadwal);
