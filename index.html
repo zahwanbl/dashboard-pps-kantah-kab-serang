@@ -1068,9 +1068,14 @@ function makeDetailController(getDataset, getLabels, ids, showReg){
   let sorted = [];
   let index = 0;
 
-  function init(){
+  function refreshSorted(){
     const dataset = getDataset();
     sorted = sortByDateAsc(dataset.filter(c=> c.jadwalReal !== false)).concat(dataset.filter(c=> c.jadwalReal === false));
+    if(index >= sorted.length) index = Math.max(0, sorted.length - 1);
+  }
+
+  function resetToDefault(){
+    refreshSorted();
     index = indexOfNearestUpcoming(sorted);
   }
 
@@ -1095,7 +1100,7 @@ function makeDetailController(getDataset, getLabels, ids, showReg){
   }
 
   function renderManual(){
-    init(); // selalu refresh biar sinkron kalau data berubah / kategori lain diklik
+    refreshSorted(); // cuma nyegerin data, POSISI (index) yang lagi dilihat TETAP dipertahankan
     if(sorted.length === 0){
       document.getElementById(ids.spotlight).innerHTML =
         `<div style="grid-column:1/-1; padding:30px; text-align:center; color:var(--ink-faint);">Belum ada data.</div>`;
@@ -1114,7 +1119,7 @@ function makeDetailController(getDataset, getLabels, ids, showReg){
   function next(){ if(index < sorted.length - 1){ index++; renderCase(sorted[index], `Kasus ${index+1} dari ${sorted.length} &middot; urut tanggal`); document.getElementById(ids.next).disabled=(index>=sorted.length-1); document.getElementById(ids.prev).disabled=false; } }
 
   function goTo(reg){
-    init();
+    refreshSorted(); // JANGAN reset ke default, biar index yang ke-set di sini nggak ketiban
     const idx = sorted.findIndex(c=> c.reg === reg);
     if(idx === -1) return false;
     index = idx;
@@ -1124,7 +1129,7 @@ function makeDetailController(getDataset, getLabels, ids, showReg){
   document.getElementById(ids.prev).addEventListener('click', ()=>{ if(!tvMode) prev(); });
   document.getElementById(ids.next).addEventListener('click', ()=>{ if(!tvMode) next(); });
 
-  return { init, renderManual, renderCase, goTo };
+  return { resetToDefault, renderManual, renderCase, goTo };
 }
 
 const perkaraDetail = makeDetailController(
@@ -1149,7 +1154,7 @@ function tvRenderDetail(){
 
 function goToDetailByReg(reg, controller, tabName){
   if(tvMode) return;
-  if(controller.goTo(reg)) setTopTab(tabName);
+  if(controller.goTo(reg)) setTopTab(tabName, false);
 }
 ['board','jadwal-perkara','rekapBody'].forEach(id=>{
   const el = document.getElementById(id);
@@ -1262,15 +1267,16 @@ function fmtDate(s){
 
 let currentTop = 'pengendalian';
 const LOCKED_TABS = ['jadwal','detail','detail-sengketa','detail-konflik'];
-function setTopTab(name){
+function setTopTab(name, resetDetail){
+  resetDetail = resetDetail !== false; // default true: reset ke kasus terdekat, kecuali sengaja dimatiin (pas diarahin dari klik kasus/notifikasi)
   currentTop = name;
   document.querySelectorAll('.toptab').forEach(t=> t.classList.toggle('active', t.dataset.top===name));
   document.querySelectorAll('.view').forEach(v=> v.classList.remove('active'));
   document.getElementById('view-'+name).classList.add('active');
   document.body.classList.toggle('unlocked-view', !LOCKED_TABS.includes(name));
-  if(name==='detail'){ if(tvMode){ tvRenderDetail(); } else { perkaraDetail.renderManual(); } }
-  if(name==='detail-sengketa'){ sengketaDetail.renderManual(); }
-  if(name==='detail-konflik'){ konflikDetail.renderManual(); }
+  if(name==='detail'){ if(tvMode){ tvRenderDetail(); } else { if(resetDetail) perkaraDetail.resetToDefault(); perkaraDetail.renderManual(); } }
+  if(name==='detail-sengketa'){ if(resetDetail) sengketaDetail.resetToDefault(); sengketaDetail.renderManual(); }
+  if(name==='detail-konflik'){ if(resetDetail) konflikDetail.resetToDefault(); konflikDetail.renderManual(); }
 }
 document.querySelectorAll('.toptab').forEach(t=>{
   t.addEventListener('click', ()=>{ if(!tvMode) setTopTab(t.dataset.top); });
@@ -1334,6 +1340,7 @@ sw.addEventListener('click', ()=>{
     startAutoScroll();
   } else {
     stopAutoScroll();
+    perkaraDetail.resetToDefault();
     perkaraDetail.renderManual();
   }
 });
@@ -1621,8 +1628,11 @@ setupCalNav();
   renderJadwalColumn('jadwal-perkara', cases.filter(c=> c.jadwalReal !== false && new Date(c.jadwal) >= todayMidnight()), STATUS_LABEL_PERKARA);
   renderJadwalColumn('jadwal-pengendalian', casesPengendalian, TAHAP_LABEL_PENGENDALIAN);
   renderJadwalColumn('jadwal-sengketa', casesSengketa.filter(c=> c.jadwalReal && new Date(c.jadwal) >= todayMidnight()), TAHAP_LABEL_SENGKETA, false);
+  perkaraDetail.resetToDefault();
   perkaraDetail.renderManual();
+  sengketaDetail.resetToDefault();
   sengketaDetail.renderManual();
+  konflikDetail.resetToDefault();
   konflikDetail.renderManual();
   setupYearFilter('', cases, STATUS_LABEL_PERKARA, yearFromJadwal);
   setupYearFilter('-pengendalian', casesPengendalian, TAHAP_LABEL_PENGENDALIAN, yearFromJadwal);
