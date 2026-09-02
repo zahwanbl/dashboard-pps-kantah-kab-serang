@@ -929,6 +929,8 @@ const STATUS_LABEL_SENGKETA_REAL = {
 const STATUS_BADGE_CLASS = {
   putusan:'st-putusan', proses:'st-proses', cabut:'st-cabut', damai:'st-damai',
   banding:'st-banding', kasasi:'st-kasasi', gugur:'st-gugur', lainnya:'st-lainnya', selesai:'st-selesai',
+  pengkajian:'st-proses', gelar_awal:'st-proses', penelitian:'st-proses',
+  ekspos:'st-banding', rakor:'st-banding', gelar_akhir:'st-damai', penyelesaian:'st-selesai',
 };
 
 /* ============ SUMBER DATA ASLI (Google Apps Script Web App) ============ */
@@ -1532,16 +1534,16 @@ setupCalNav();
 
   renderBoard('board', onlyCurrentYear(cases), STATUS_LABEL_PERKARA);
   renderBoard('board-pengendalian', onlyCurrentYear(casesPengendalian), TAHAP_LABEL_PENGENDALIAN);
-  renderBoard('board-sengketa', casesSengketa, STATUS_LABEL_SENGKETA_REAL, false);
+  renderBoard('board-sengketa', casesSengketa, TAHAP_LABEL_SENGKETA, false);
   renderBoard('board-konflik', onlyCurrentYear(casesKonflik), TAHAP_LABEL_SENGKETA);
   renderJadwalColumn('jadwal-perkara', cases.filter(c=> c.jadwalReal !== false && new Date(c.jadwal) >= todayMidnight()), STATUS_LABEL_PERKARA);
   renderJadwalColumn('jadwal-pengendalian', casesPengendalian, TAHAP_LABEL_PENGENDALIAN);
-  renderJadwalColumn('jadwal-sengketa', casesSengketa.filter(c=> c.jadwalReal && new Date(c.jadwal) >= todayMidnight()), STATUS_LABEL_SENGKETA_REAL, false);
+  renderJadwalColumn('jadwal-sengketa', casesSengketa.filter(c=> c.jadwalReal && new Date(c.jadwal) >= todayMidnight()), TAHAP_LABEL_SENGKETA, false);
   initSpotlight();
   renderSpotlightManual();
   setupYearFilter('', cases, STATUS_LABEL_PERKARA, yearFromJadwal);
   setupYearFilter('-pengendalian', casesPengendalian, TAHAP_LABEL_PENGENDALIAN, yearFromJadwal);
-  setupYearFilter('-sengketa', casesSengketa, STATUS_LABEL_SENGKETA_REAL, yearFromField, true);
+  setupYearFilter('-sengketa', casesSengketa, TAHAP_LABEL_SENGKETA, yearFromField, true);
   setupYearFilter('-konflik', casesKonflik, TAHAP_LABEL_SENGKETA, yearFromJadwal);
   updateNotifBtn();
   renderReminderBanner();
