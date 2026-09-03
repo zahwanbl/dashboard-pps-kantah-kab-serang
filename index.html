@@ -687,16 +687,13 @@
       <table class="rekap-table" id="rekapTable">
         <thead>
           <tr>
-            <th rowspan="2">No</th>
-            <th rowspan="2">No. Register</th>
-            <th rowspan="2">Para Pihak</th>
-            <th rowspan="2">Objek Perkara</th>
-            <th rowspan="2">Agenda Perkara</th>
-            <th rowspan="2">Jadwal Sidang</th>
-            <th colspan="4">Putusan</th>
-          </tr>
-          <tr>
-            <th>Tk. Pertama</th><th>Banding</th><th>Kasasi</th><th>PK</th>
+            <th>No</th>
+            <th>Nomor Perkara</th>
+            <th>Para Pihak</th>
+            <th>Objek Perkara</th>
+            <th>Agenda</th>
+            <th>Jadwal Sidang</th>
+            <th>Status</th>
           </tr>
         </thead>
         <tbody id="rekapBody"></tbody>
@@ -902,21 +899,6 @@ const TAHAP_LABEL = {
   putusan:{ label:"Putusan", badge:"b-putusan" },
 };
 
-const TAHAP_LABEL_PERKARA = {
-  relaas:{ label:"Relaas" },
-  panggilan:{ label:"Panggilan Para Pihak" },
-  mediasi:{ label:"Mediasi" },
-  hasil_mediasi:{ label:"Hasil Mediasi" },
-  jawaban:{ label:"Jawaban" },
-  replik:{ label:"Replik" },
-  duplik:{ label:"Duplik" },
-  putusan_sela:{ label:"Putusan Sela" },
-  pembuktian:{ label:"Pembuktian" },
-  saksi:{ label:"Saksi" },
-  kesimpulan:{ label:"Kesimpulan" },
-  putusan:{ label:"Putusan" },
-};
-
 const TAHAP_LABEL_SENGKETA = {
   pengkajian:{ label:"Pengkajian Kasus" },
   gelar_awal:{ label:"Gelar Awal" },
@@ -939,15 +921,16 @@ const TAHAP_LABEL_PENGENDALIAN = {
 };
 
 /* Label status ASLI (dari Google Sheets) — dipakai khusus Perkara & Sengketa */
-const STATUS_LABEL_PERKARA = {
+const TAHAP_LABEL_PERKARA = {
+  sidang_pertama:{ label:"Sidang Pertama" },
+  kelengkapan:{ label:"Kelengkapan Para Pihak" },
+  ecourt:{ label:"E-Court" },
+  mediasi:{ label:"Mediasi" },
+  bukti_surat:{ label:"Bukti Surat" },
+  saksi:{ label:"Saksi" },
+  pemeriksaan_setempat:{ label:"Pemeriksaan Setempat" },
+  kesimpulan:{ label:"Kesimpulan" },
   putusan:{ label:"Putusan" },
-  proses:{ label:"Proses" },
-  cabut:{ label:"Cabut" },
-  damai:{ label:"Damai" },
-  banding:{ label:"Banding" },
-  kasasi:{ label:"Kasasi" },
-  gugur:{ label:"Gugur" },
-  lainnya:{ label:"Lainnya" },
 };
 const STATUS_LABEL_SENGKETA_REAL = {
   proses:{ label:"Dalam Proses" },
@@ -958,6 +941,9 @@ const STATUS_BADGE_CLASS = {
   banding:'st-banding', kasasi:'st-kasasi', gugur:'st-gugur', lainnya:'st-lainnya', selesai:'st-selesai',
   pengkajian:'st-proses', gelar_awal:'st-proses', penelitian:'st-proses',
   ekspos:'st-banding', rakor:'st-banding', gelar_akhir:'st-damai', penyelesaian:'st-selesai',
+  sidang_pertama:'st-proses', kelengkapan:'st-proses', ecourt:'st-proses',
+  mediasi:'st-banding', bukti_surat:'st-banding', saksi:'st-banding',
+  pemeriksaan_setempat:'st-damai', kesimpulan:'st-damai',
 };
 
 /* ============ SUMBER DATA ASLI (Google Apps Script Web App) ============ */
@@ -1133,7 +1119,7 @@ function makeDetailController(getDataset, getLabels, ids, showReg){
 }
 
 const perkaraDetail = makeDetailController(
-  ()=>cases, ()=>STATUS_LABEL_PERKARA,
+  ()=>cases, ()=>TAHAP_LABEL_PERKARA,
   { spotlight:'spotlight', prev:'spotlightPrev', next:'spotlightNext', pos:'spotlightPos' }
 );
 const sengketaDetail = makeDetailController(
@@ -1190,7 +1176,7 @@ function yearFromReg(c){
 }
 function yearFromField(c){ return c.tahun ? String(c.tahun) : yearFromJadwal(c); }
 
-function renderRekap(suffix, dataset, labels, yearFilter, searchTerm, yearOf, simpleMode){
+function renderRekap(suffix, dataset, labels, yearFilter, searchTerm, yearOf, simpleMode, showRegCol){
   yearOf = yearOf || yearFromJadwal;
   yearFilter = yearFilter || 'all';
   searchTerm = (searchTerm || '').trim().toLowerCase();
@@ -1212,6 +1198,7 @@ function renderRekap(suffix, dataset, labels, yearFilter, searchTerm, yearOf, si
       const badge = `<span class="status-badge ${STATUS_BADGE_CLASS[c.tahap]||''}">${info.label}</span>`;
       return `<tr data-reg="${c.reg}">
         <td class="center">${i+1}</td>
+        ${showRegCol ? `<td class="mono">${c.reg}</td>` : ''}
         <td>${c.pihak} vs ${c.lawan}</td>
         <td>${c.objek}</td>
         <td>${agenda}</td>
@@ -1240,7 +1227,7 @@ function renderRekap(suffix, dataset, labels, yearFilter, searchTerm, yearOf, si
     `Menampilkan <strong>${filtered.length} kasus</strong> &middot; ${yearLabel}${searchLabel}`;
 }
 
-function setupYearFilter(suffix, dataset, labels, yearOf, simpleMode){
+function setupYearFilter(suffix, dataset, labels, yearOf, simpleMode, showRegCol){
   yearOf = yearOf || yearFromJadwal;
   const years = [...new Set(dataset.map(yearOf))].sort();
   const currentYear = String(new Date().getFullYear());
@@ -1250,7 +1237,7 @@ function setupYearFilter(suffix, dataset, labels, yearOf, simpleMode){
   if(years.includes(currentYear)) sel.value = currentYear;
 
   const search = document.getElementById('rekapSearch' + suffix);
-  const apply = ()=> renderRekap(suffix, dataset, labels, sel.value, search.value, yearOf, simpleMode);
+  const apply = ()=> renderRekap(suffix, dataset, labels, sel.value, search.value, yearOf, simpleMode, showRegCol);
   sel.addEventListener('change', apply);
   search.addEventListener('input', apply);
   apply();
@@ -1389,7 +1376,7 @@ function tomorrowStr(){
 function findSidangBesok(){
   const target = tomorrowStr();
   const kategoriList = [
-    { nama:'Perkara', data:cases, labels:STATUS_LABEL_PERKARA },
+    { nama:'Perkara', data:cases, labels:TAHAP_LABEL_PERKARA },
     { nama:'Pengendalian', data:casesPengendalian, labels:TAHAP_LABEL_PENGENDALIAN },
     { nama:'Sengketa', data:casesSengketa, labels:TAHAP_LABEL_SENGKETA },
     { nama:'Konflik', data:casesKonflik, labels:TAHAP_LABEL_SENGKETA },
@@ -1628,11 +1615,11 @@ setupCalNav();
       '<div style="padding:14px; margin-bottom:10px; background:var(--red-soft); color:var(--red); border-radius:6px; font-size:12.5px; font-weight:600;">Gagal memuat data Perkara/Sengketa dari Google Sheets. Cek DATA_SOURCE_URL &amp; DATA_SOURCE_KEY di kode, atau coba muat ulang halaman.</div>');
   }
 
-  renderBoard('board', onlyCurrentYear(cases), STATUS_LABEL_PERKARA);
+  renderBoard('board', onlyCurrentYear(cases), TAHAP_LABEL_PERKARA);
   renderBoard('board-pengendalian', onlyCurrentYear(casesPengendalian), TAHAP_LABEL_PENGENDALIAN);
   renderBoard('board-sengketa', casesSengketa, TAHAP_LABEL_SENGKETA, false);
   renderBoard('board-konflik', onlyCurrentYear(casesKonflik), TAHAP_LABEL_SENGKETA);
-  renderJadwalColumn('jadwal-perkara', cases.filter(c=> c.jadwalReal !== false && new Date(c.jadwal) >= todayMidnight()), STATUS_LABEL_PERKARA);
+  renderJadwalColumn('jadwal-perkara', cases.filter(c=> c.jadwalReal !== false && new Date(c.jadwal) >= todayMidnight()), TAHAP_LABEL_PERKARA);
   renderJadwalColumn('jadwal-pengendalian', casesPengendalian, TAHAP_LABEL_PENGENDALIAN);
   renderJadwalColumn('jadwal-sengketa', casesSengketa.filter(c=> c.jadwalReal && new Date(c.jadwal) >= todayMidnight()), TAHAP_LABEL_SENGKETA, false);
   perkaraDetail.resetToDefault();
@@ -1641,7 +1628,7 @@ setupCalNav();
   sengketaDetail.renderManual();
   konflikDetail.resetToDefault();
   konflikDetail.renderManual();
-  setupYearFilter('', cases, STATUS_LABEL_PERKARA, yearFromJadwal);
+  setupYearFilter('', cases, TAHAP_LABEL_PERKARA, yearFromJadwal, true, true);
   setupYearFilter('-pengendalian', casesPengendalian, TAHAP_LABEL_PENGENDALIAN, yearFromJadwal);
   setupYearFilter('-sengketa', casesSengketa, TAHAP_LABEL_SENGKETA, yearFromField, true);
   setupYearFilter('-konflik', casesKonflik, TAHAP_LABEL_SENGKETA, yearFromJadwal);
