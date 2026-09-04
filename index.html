@@ -6,6 +6,8 @@
 <title>Agenda Sidang — PPS Kantah Kab. Serang</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <script src="https://accounts.google.com/gsi/client" async defer></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,500;8..60,600;8..60,700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
   :root{
@@ -563,6 +565,8 @@
 <div class="controlbar">
   <div class="tabs toptabs" id="topTabs">
     <div class="tab toptab active" data-top="pengendalian">Pengendalian</div>
+    <div class="tab toptab" data-top="detail-pengendalian">Detail Pengendalian</div>
+    <div class="tab toptab" data-top="peta-pengendalian">Peta</div>
     <div class="tab toptab" data-top="sengketa">Sengketa</div>
     <div class="tab toptab" data-top="detail-sengketa">Detail Sengketa</div>
     <div class="tab toptab" data-top="perkara">Perkara</div>
@@ -583,17 +587,17 @@
 <main>
 
   <div class="view active" id="view-pengendalian">
-    <span class="eyebrow">Status per tahap &middot; belum ada data</span>
-    <h2 class="viewtitle">Ringkasan Pengendalian Berjalan</h2>
+    <span class="eyebrow">Status per Kategori Tahapan (T0-T6) &middot; data asli</span>
+    <h2 class="viewtitle">Ringkasan Pengendalian (Tanah Terindikasi Terlantar)</h2>
     <div class="board" id="board-pengendalian"></div>
 
-    <span class="eyebrow" style="margin-top:28px; display:block;">Rekap seluruh kasus pengendalian</span>
+    <span class="eyebrow" style="margin-top:28px; display:block;">Rekap seluruh bidang tanah</span>
     <div class="rekap-headrow">
       <h2 class="viewtitle" style="font-size:19px; margin:0;">Rincian Pengendalian</h2>
       <div class="rekap-filters">
-        <input type="text" id="rekapSearch-pengendalian" class="rekap-search" placeholder="Cari nama pihak, No. Register, objek...">
+        <input type="text" id="rekapSearch-pengendalian" class="rekap-search" placeholder="Cari nama pemegang hak, objek...">
         <label class="yearfilter">
-          Tahun:
+          Tahun SK:
           <select id="rekapYearFilter-pengendalian"></select>
         </label>
       </div>
@@ -603,21 +607,36 @@
       <table class="rekap-table">
         <thead>
           <tr>
-            <th rowspan="2">No</th>
-            <th rowspan="2">No. Register</th>
-            <th rowspan="2">Para Pihak</th>
-            <th rowspan="2">Objek</th>
-            <th rowspan="2">Agenda</th>
-            <th rowspan="2">Jadwal</th>
-            <th colspan="4">Putusan</th>
-          </tr>
-          <tr>
-            <th>Tk. Pertama</th><th>Banding</th><th>Kasasi</th><th>PK</th>
+            <th>No</th>
+            <th>No. Sertipikat</th>
+            <th>Nama Pemegang Hak</th>
+            <th>Objek</th>
+            <th>Letak Tanah</th>
+            <th>Status</th>
           </tr>
         </thead>
         <tbody id="rekapBody-pengendalian"></tbody>
       </table>
     </div>
+  </div>
+
+  <div class="view" id="view-detail-pengendalian">
+    <div class="detail-headrow">
+      <h2 class="viewtitle" style="margin:0;">Detail Pengendalian</h2>
+      <div class="spotlight-nav">
+        <button class="navbtn" id="spotlightPrevPengendalian">&larr; Sebelumnya</button>
+        <span class="navpos" id="spotlightPosPengendalian"></span>
+        <button class="navbtn" id="spotlightNextPengendalian">Berikutnya &rarr;</button>
+      </div>
+    </div>
+    <div class="spotlight" id="spotlightPengendalian"></div>
+  </div>
+
+  <div class="view" id="view-peta-pengendalian">
+    <span class="eyebrow">Sebaran bidang tanah &middot; klik titik buat lihat detail</span>
+    <h2 class="viewtitle">Peta Tanah Terindikasi Terlantar</h2>
+    <div id="petaPengendalianInfo" class="rekap-summary"></div>
+    <div id="petaPengendalian" style="flex:1; min-height:0; border-radius:var(--radius); border:1px solid var(--line); overflow:hidden;"></div>
   </div>
 
   <div class="view" id="view-sengketa">
@@ -888,7 +907,7 @@ window.addEventListener('load', ()=>{
 
 let cases = [];
 
-const casesPengendalian = [];
+let casesPengendalian = [];
 let casesSengketa = [];
 const casesKonflik = [];
 
@@ -910,14 +929,13 @@ const TAHAP_LABEL_SENGKETA = {
 };
 
 const TAHAP_LABEL_PENGENDALIAN = {
-  pemeriksaan_persiapan:{ label:"Pemeriksaan Persiapan" },
-  pembacaan_gugatan:{ label:"Pembacaan Gugatan" },
-  jawaban_tergugat:{ label:"Jawaban Tergugat" },
-  replik:{ label:"Replik" },
-  duplik:{ label:"Duplik" },
-  pembuktian:{ label:"Pembuktian" },
-  kesimpulan:{ label:"Kesimpulan" },
-  putusan:{ label:"Putusan" },
+  t0:{ label:"T0 · Sudah Pendayagunaan" },
+  t1:{ label:"T1 · Sudah Penetapan Tanah Telantar" },
+  t2:{ label:"T2 · Dihapus/Optimalisasi" },
+  t3:{ label:"T3 · Usulan Penetapan (Status Quo)" },
+  t4:{ label:"T4 · Sudah Penertiban" },
+  t5:{ label:"T5 · Belum Penertiban (Hak Belum Berakhir)" },
+  t6:{ label:"T6 · Belum Penertiban (Hak Sudah Berakhir)" },
 };
 
 /* Label status ASLI (dari Google Sheets) — dipakai khusus Perkara & Sengketa */
@@ -944,6 +962,8 @@ const STATUS_BADGE_CLASS = {
   sidang_pertama:'st-proses', kelengkapan:'st-proses', ecourt:'st-proses',
   mediasi:'st-banding', bukti_surat:'st-banding', saksi:'st-banding',
   pemeriksaan_setempat:'st-damai', kesimpulan:'st-damai',
+  t0:'st-selesai', t1:'st-proses', t2:'st-cabut', t3:'st-banding',
+  t4:'st-damai', t5:'st-proses', t6:'st-gugur',
 };
 
 /* ============ SUMBER DATA ASLI (Google Apps Script Web App) ============ */
@@ -959,9 +979,10 @@ async function loadRealData(){
     if(json.error) throw new Error(json.error);
     cases = json.perkara || [];
     casesSengketa = json.sengketa || [];
+    casesPengendalian = json.pengendalian || [];
     return true;
   }catch(err){
-    console.error('Gagal ambil data Perkara/Sengketa:', err);
+    console.error('Gagal ambil data Perkara/Sengketa/Pengendalian:', err);
     return false;
   }
 }
@@ -978,7 +999,7 @@ function renderBoard(containerId, dataset, labels, showReg){
       <div class="col-body">${items.map(c=>`
         <div class="card" data-reg="${c.reg}">
           ${showReg ? `<div class="reg">${c.reg}</div>` : ''}
-          <div class="pihak">${c.pihak} vs ${c.lawan}</div>
+          <div class="pihak">${(c.lawan && c.lawan !== '-') ? c.pihak+' vs '+c.lawan : c.pihak}</div>
           <div class="obj">${c.objek}</div>
           <div class="tanggal">${c.jadwalReal ? '&#128197; '+fmtDate(c.jadwal) : '<span style="color:var(--ink-faint);">Belum ada jadwal</span>'}</div>
         </div>`).join('')}</div>`;
@@ -998,7 +1019,7 @@ function renderJadwalColumn(containerId, dataset, labels, showReg){
     const agenda = c.agenda || (labels ? ((labels[c.tahap] && labels[c.tahap].label) || c.tahap) : null);
     return `<div class="jrow" data-reg="${c.reg}">
       <div class="jtgl">${fmtDate(c.jadwal)}</div>
-      <div class="jpihak">${c.pihak} vs ${c.lawan}</div>
+      <div class="jpihak">${pihakLawan(c)}</div>
       <div class="jmeta">${showReg ? c.reg + ' &middot; ' : ''}${c.objek}</div>
       ${agenda ? `<div class="jagenda">${agenda}</div>` : ''}
     </div>`;
@@ -1023,6 +1044,58 @@ function indexOfNearestUpcoming(list){
   const today = todayMidnight();
   const idx = list.findIndex(c=> c.jadwalReal !== false && new Date(c.jadwal) >= today);
   return idx === -1 ? Math.max(0, list.length - 1) : idx;
+}
+
+let petaPengendalianMap = null;
+function renderPetaPengendalian(){
+  const info = document.getElementById('petaPengendalianInfo');
+  const berTitik = casesPengendalian.filter(c=> c.lat && c.lng);
+
+  if(!petaPengendalianMap){
+    petaPengendalianMap = L.map('petaPengendalian');
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors',
+      maxZoom: 19,
+    }).addTo(petaPengendalianMap);
+  }
+
+  // bersihin marker lama
+  petaPengendalianMap.eachLayer(layer=>{
+    if(layer instanceof L.Marker) petaPengendalianMap.removeLayer(layer);
+  });
+
+  if(berTitik.length === 0){
+    info.innerHTML = `Belum ada bidang tanah yang punya titik koordinat (dari <strong>${casesPengendalian.length} total</strong>). Isi kolom Latitude &amp; Longitude di Sheets buat mulai munculin titik di peta ini.`;
+    petaPengendalianMap.setView([-6.1, 106.15], 10); // default: area Kab. Serang
+    setTimeout(()=> petaPengendalianMap.invalidateSize(), 100);
+    return;
+  }
+
+  info.innerHTML = `Menampilkan <strong>${berTitik.length} dari ${casesPengendalian.length} bidang tanah</strong> yang sudah ada titik koordinatnya.`;
+
+  const bounds = [];
+  berTitik.forEach(c=>{
+    const lat = parseFloat(c.lat), lng = parseFloat(c.lng);
+    if(isNaN(lat) || isNaN(lng)) return;
+    const info = TAHAP_LABEL_PENGENDALIAN[c.tahap] || { label:c.tahap };
+    const marker = L.marker([lat, lng]).addTo(petaPengendalianMap);
+    marker.bindPopup(`<b>${c.pihak}</b><br>${c.letak}<br><span style="color:#B8862B;">${info.label}</span><br><a href="#" data-reg="${c.reg}" class="peta-popup-link">Lihat detail &rarr;</a>`);
+    marker.on('popupopen', ()=>{
+      const link = document.querySelector('.peta-popup-link');
+      if(link) link.addEventListener('click', ev=>{
+        ev.preventDefault();
+        goToDetailByReg(c.reg, pengendalianDetail, 'detail-pengendalian');
+      });
+    });
+    bounds.push([lat, lng]);
+  });
+
+  if(bounds.length === 1){
+    petaPengendalianMap.setView(bounds[0], 13);
+  } else if(bounds.length > 1){
+    petaPengendalianMap.fitBounds(bounds, { padding:[30,30] });
+  }
+  setTimeout(()=> petaPengendalianMap.invalidateSize(), 100);
 }
 
 function renderMapslot(c){
@@ -1068,15 +1141,18 @@ function makeDetailController(getDataset, getLabels, ids, showReg){
   function renderCase(c, navText){
     const labels = getLabels();
     const info = labels[c.tahap] || { label: c.tahap };
+    const showLawan = c.lawan && c.lawan !== '-';
+    const showJadwalField = c.jadwalReal || c.agenda; // sembunyiin baris Jadwal kalau emang ga relevan (misal Pengendalian)
     document.getElementById(ids.spotlight).innerHTML = `
       <div>
         ${showReg ? `<div class="reg">${c.reg}</div>` : ''}
-        <h2>${c.pihak} <span style="color:var(--ink-faint); font-weight:400;">vs</span> ${c.lawan}</h2>
+        <h2>${c.pihak}${showLawan ? ` <span style="color:var(--ink-faint); font-weight:400;">vs</span> ${c.lawan}` : ''}</h2>
         <div class="field"><div class="label">Objek</div><div class="val">${c.objek}</div></div>
         <div class="field"><div class="label">Letak Tanah</div><div class="val">${c.letak || '-'}</div></div>
-        <div class="field"><div class="label">Agenda</div><div class="val">${c.agenda || '&mdash; belum tercatat'}</div></div>
-        <div class="field"><div class="label">Jadwal</div><div class="val">${c.jadwalReal ? fmtDate(c.jadwal) : '&mdash; belum tercatat'}</div></div>
+        ${c.agenda !== undefined ? `<div class="field"><div class="label">Agenda</div><div class="val">${c.agenda || '&mdash; belum tercatat'}</div></div>` : ''}
+        ${showJadwalField ? `<div class="field"><div class="label">Jadwal</div><div class="val">${c.jadwalReal ? fmtDate(c.jadwal) : '&mdash; belum tercatat'}</div></div>` : ''}
         <div class="field"><div class="label">Status</div><div class="val"><span class="status-badge ${STATUS_BADGE_CLASS[c.tahap]||''}">${info.label}</span></div></div>
+        ${c.catatan ? `<div class="field"><div class="label">Catatan</div><div class="val" style="white-space:pre-wrap;">${c.catatan}</div></div>` : ''}
       </div>
       <div class="stamp">${info.label.toUpperCase()}</div>
       ${renderMapslot(c)}
@@ -1131,6 +1207,10 @@ const konflikDetail = makeDetailController(
   ()=>casesKonflik, ()=>TAHAP_LABEL_SENGKETA,
   { spotlight:'spotlightKonflik', prev:'spotlightPrevKonflik', next:'spotlightNextKonflik', pos:'spotlightPosKonflik' }
 );
+const pengendalianDetail = makeDetailController(
+  ()=>casesPengendalian, ()=>TAHAP_LABEL_PENGENDALIAN,
+  { spotlight:'spotlightPengendalian', prev:'spotlightPrevPengendalian', next:'spotlightNextPengendalian', pos:'spotlightPosPengendalian' }
+);
 
 function tvRenderDetail(){
   if(!tvUpcomingList.length) tvUpcomingList = nearestUpcoming(cases, 5);
@@ -1161,6 +1241,13 @@ function goToDetailByReg(reg, controller, tabName){
   if(el) el.addEventListener('click', e=>{
     const target = e.target.closest('[data-reg]');
     if(target) goToDetailByReg(target.dataset.reg, konflikDetail, 'detail-konflik');
+  });
+});
+['board-pengendalian','rekapBody-pengendalian'].forEach(id=>{
+  const el = document.getElementById(id);
+  if(el) el.addEventListener('click', e=>{
+    const target = e.target.closest('[data-reg]');
+    if(target) goToDetailByReg(target.dataset.reg, pengendalianDetail, 'detail-pengendalian');
   });
 });
 
@@ -1199,7 +1286,7 @@ function renderRekap(suffix, dataset, labels, yearFilter, searchTerm, yearOf, si
       return `<tr data-reg="${c.reg}">
         <td class="center">${i+1}</td>
         ${showRegCol ? `<td class="mono">${c.reg}</td>` : ''}
-        <td>${c.pihak} vs ${c.lawan}</td>
+        <td>${pihakLawan(c)}</td>
         <td>${c.objek}</td>
         <td>${agenda}</td>
         <td class="mono">${jadwalCell}</td>
@@ -1210,7 +1297,7 @@ function renderRekap(suffix, dataset, labels, yearFilter, searchTerm, yearOf, si
     return `<tr data-reg="${c.reg}">
       <td class="center">${i+1}</td>
       <td class="mono">${c.reg}</td>
-      <td>${c.pihak} vs ${c.lawan}</td>
+      <td>${pihakLawan(c)}</td>
       <td>${c.objek}</td>
       <td>${agenda}</td>
       <td class="mono">${jadwalCell}</td>
@@ -1248,12 +1335,15 @@ function onlyCurrentYear(dataset){
   return dataset.filter(c=> new Date(c.jadwal).getFullYear() === y);
 }
 
+function pihakLawan(c){
+  return (c.lawan && c.lawan !== '-') ? c.pihak+' vs '+c.lawan : c.pihak;
+}
 function fmtDate(s){
   return new Date(s).toLocaleDateString('id-ID',{ day:'numeric', month:'long', year:'numeric' });
 }
 
 let currentTop = 'pengendalian';
-const LOCKED_TABS = ['jadwal','detail','detail-sengketa','detail-konflik'];
+const LOCKED_TABS = ['jadwal','detail','detail-sengketa','detail-konflik','detail-pengendalian','peta-pengendalian'];
 function setTopTab(name, resetDetail){
   resetDetail = resetDetail !== false; // default true: reset ke kasus terdekat, kecuali sengaja dimatiin (pas diarahin dari klik kasus/notifikasi)
   currentTop = name;
@@ -1264,6 +1354,8 @@ function setTopTab(name, resetDetail){
   if(name==='detail'){ if(tvMode){ tvRenderDetail(); } else { if(resetDetail) perkaraDetail.resetToDefault(); perkaraDetail.renderManual(); } }
   if(name==='detail-sengketa'){ if(resetDetail) sengketaDetail.resetToDefault(); sengketaDetail.renderManual(); }
   if(name==='detail-konflik'){ if(resetDetail) konflikDetail.resetToDefault(); konflikDetail.renderManual(); }
+  if(name==='detail-pengendalian'){ if(resetDetail) pengendalianDetail.resetToDefault(); pengendalianDetail.renderManual(); }
+  if(name==='peta-pengendalian'){ renderPetaPengendalian(); }
 }
 document.querySelectorAll('.toptab').forEach(t=>{
   t.addEventListener('click', ()=>{ if(!tvMode) setTopTab(t.dataset.top); });
@@ -1616,7 +1708,7 @@ setupCalNav();
   }
 
   renderBoard('board', onlyCurrentYear(cases), TAHAP_LABEL_PERKARA);
-  renderBoard('board-pengendalian', onlyCurrentYear(casesPengendalian), TAHAP_LABEL_PENGENDALIAN);
+  renderBoard('board-pengendalian', casesPengendalian, TAHAP_LABEL_PENGENDALIAN);
   renderBoard('board-sengketa', casesSengketa, TAHAP_LABEL_SENGKETA, false);
   renderBoard('board-konflik', onlyCurrentYear(casesKonflik), TAHAP_LABEL_SENGKETA);
   renderJadwalColumn('jadwal-perkara', cases.filter(c=> c.jadwalReal !== false && new Date(c.jadwal) >= todayMidnight()), TAHAP_LABEL_PERKARA);
@@ -1628,8 +1720,10 @@ setupCalNav();
   sengketaDetail.renderManual();
   konflikDetail.resetToDefault();
   konflikDetail.renderManual();
+  pengendalianDetail.resetToDefault();
+  pengendalianDetail.renderManual();
   setupYearFilter('', cases, TAHAP_LABEL_PERKARA, yearFromJadwal, true, true);
-  setupYearFilter('-pengendalian', casesPengendalian, TAHAP_LABEL_PENGENDALIAN, yearFromJadwal);
+  setupYearFilter('-pengendalian', casesPengendalian, TAHAP_LABEL_PENGENDALIAN, yearFromJadwal, true, true);
   setupYearFilter('-sengketa', casesSengketa, TAHAP_LABEL_SENGKETA, yearFromField, true);
   setupYearFilter('-konflik', casesKonflik, TAHAP_LABEL_SENGKETA, yearFromJadwal);
   updateNotifBtn();
