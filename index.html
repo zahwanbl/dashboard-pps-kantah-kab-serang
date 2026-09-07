@@ -608,11 +608,14 @@
         <thead>
           <tr>
             <th>No</th>
-            <th>No. Sertipikat</th>
             <th>Nama Pemegang Hak</th>
-            <th>Objek</th>
-            <th>Letak Tanah</th>
-            <th>Status</th>
+            <th>No SK</th>
+            <th>Tanggal SK</th>
+            <th>Nomor Sertipikat</th>
+            <th>Tanggal Terbit</th>
+            <th>Tanggal Berakhir</th>
+            <th>Kecamatan</th>
+            <th>Desa/Kelurahan</th>
           </tr>
         </thead>
         <tbody id="rekapBody-pengendalian"></tbody>
@@ -1340,6 +1343,52 @@ function renderRekap(suffix, dataset, labels, yearFilter, searchTerm, yearOf, si
     `Menampilkan <strong>${filtered.length} kasus</strong> &middot; ${yearLabel}${searchLabel}`;
 }
 
+function renderRekapPengendalian(yearFilter, searchTerm){
+  yearFilter = yearFilter || 'all';
+  searchTerm = (searchTerm || '').trim().toLowerCase();
+  const tbody = document.getElementById('rekapBody-pengendalian');
+  let filtered = [...casesPengendalian];
+  if(yearFilter !== 'all'){
+    filtered = filtered.filter(c=> String(new Date(c.jadwal).getFullYear()) === yearFilter);
+  }
+  if(searchTerm){
+    filtered = filtered.filter(c=>
+      `${c.pihak} ${c.jenisHak} ${c.noSK} ${c.noSertipikat} ${c.kecamatan} ${c.desaKel}`.toLowerCase().includes(searchTerm)
+    );
+  }
+  const dash = v => v ? v : '<span class="center">&mdash;</span>';
+  tbody.innerHTML = filtered.map((c,i)=> `
+    <tr data-reg="${c.reg}">
+      <td class="center">${i+1}</td>
+      <td>${c.pihak}</td>
+      <td class="mono">${dash(c.noSK)}</td>
+      <td class="mono">${c.tanggalSK ? fmtDate(c.tanggalSK) : '<span class="center">&mdash;</span>'}</td>
+      <td class="mono">${dash(c.noSertipikat)}</td>
+      <td class="mono">${c.tanggalTerbit ? fmtDate(c.tanggalTerbit) : '<span class="center">&mdash;</span>'}</td>
+      <td class="mono">${c.tanggalBerakhir ? fmtDate(c.tanggalBerakhir) : '<span class="center">&mdash;</span>'}</td>
+      <td>${dash(c.kecamatan)}</td>
+      <td>${dash(c.desaKel)}</td>
+    </tr>`).join('');
+
+  const yearLabel = yearFilter === 'all' ? 'semua tahun' : `tahun SK ${yearFilter}`;
+  const searchLabel = searchTerm ? ` &middot; pencarian "${searchTerm}"` : '';
+  document.getElementById('rekapSummary-pengendalian').innerHTML =
+    `Menampilkan <strong>${filtered.length} bidang tanah</strong> &middot; ${yearLabel}${searchLabel}`;
+}
+
+function setupPengendalianTable(){
+  const years = [...new Set(casesPengendalian.map(c=> String(new Date(c.jadwal).getFullYear())))].sort();
+  const sel = document.getElementById('rekapYearFilter-pengendalian');
+  sel.innerHTML = `<option value="all">Semua Tahun</option>` +
+    years.map(y=> `<option value="${y}">${y}</option>`).join('');
+
+  const search = document.getElementById('rekapSearch-pengendalian');
+  const apply = ()=> renderRekapPengendalian(sel.value, search.value);
+  sel.addEventListener('change', apply);
+  search.addEventListener('input', apply);
+  apply();
+}
+
 function setupYearFilter(suffix, dataset, labels, yearOf, simpleMode, showRegCol){
   yearOf = yearOf || yearFromJadwal;
   const years = [...new Set(dataset.map(yearOf))].sort();
@@ -1365,7 +1414,9 @@ function pihakLawan(c){
   return (c.lawan && c.lawan !== '-') ? c.pihak+' vs '+c.lawan : c.pihak;
 }
 function fmtDate(s){
-  return new Date(s).toLocaleDateString('id-ID',{ day:'numeric', month:'long', year:'numeric' });
+  const d = new Date(s);
+  if(isNaN(d)) return String(s); // kalau bukan format tanggal yang valid, tampilin apa adanya
+  return d.toLocaleDateString('id-ID',{ day:'numeric', month:'long', year:'numeric' });
 }
 
 let currentTop = 'pengendalian';
@@ -1749,7 +1800,7 @@ setupCalNav();
   pengendalianDetail.resetToDefault();
   pengendalianDetail.renderManual();
   setupYearFilter('', cases, TAHAP_LABEL_PERKARA, yearFromJadwal, true, true);
-  setupYearFilter('-pengendalian', casesPengendalian, TAHAP_LABEL_PENGENDALIAN, yearFromJadwal, true, true);
+  setupPengendalianTable();
   setupYearFilter('-sengketa', casesSengketa, TAHAP_LABEL_SENGKETA_V2, yearFromField, true);
   setupYearFilter('-konflik', casesKonflik, TAHAP_LABEL_SENGKETA, yearFromJadwal);
   updateNotifBtn();
