@@ -1218,11 +1218,16 @@ const konflikDetail = makeDetailController(
 );
 function renderCasePengendalian(c, navText){
   const info = TAHAP_LABEL_PENGENDALIAN[c.tahap] || { label: c.tahap };
+  const masaBerlaku = (c.tanggalTerbit || c.tanggalBerakhir)
+    ? `${c.tanggalTerbit ? fmtDate(c.tanggalTerbit) : '-'} &rarr; ${c.tanggalBerakhir ? fmtDate(c.tanggalBerakhir) : '-'}`
+    : '-';
   document.getElementById('spotlightPengendalian').innerHTML = `
     <div>
       <div class="reg">${c.reg}</div>
       <h2>${c.pihak}</h2>
-      <div class="field"><div class="label">Jenis Hak</div><div class="val">${c.jenisHak || '-'}${c.noSertipikat ? ' &middot; No. '+c.noSertipikat : ''}</div></div>
+      <div class="field"><div class="label">Jenis Hak</div><div class="val">${c.jenisHak || '-'}</div></div>
+      <div class="field"><div class="label">SK Hak</div><div class="val">${c.noSK || '-'}${c.tanggalSK ? ' &middot; '+fmtDate(c.tanggalSK) : ''}</div></div>
+      <div class="field"><div class="label">Masa Berlaku Sertipikat</div><div class="val">${masaBerlaku}</div></div>
       <div class="field"><div class="label">Letak Tanah</div><div class="val">${c.letak || '-'}</div></div>
       <div class="field"><div class="label">Luas Hak</div><div class="val">${c.luasHak ? c.luasHak+' Ha' : '-'}${c.luasTelantar ? ' &middot; Terindikasi Terlantar: '+c.luasTelantar+' Ha' : ''}</div></div>
       <div class="field"><div class="label">Peruntukan Sesuai SK</div><div class="val">${c.peruntukan || '-'}</div></div>
