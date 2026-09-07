@@ -1069,8 +1069,8 @@ function renderPetaPengendalian(){
 
   if(!petaPengendalianMap){
     petaPengendalianMap = L.map('petaPengendalian');
-    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
-      attribution: '&copy; Esri &mdash; Sumber: Esri, HERE, Garmin, USGS, EPA',
+    L.tileLayer('https://api.maptiler.com/maps/streets-v2/{z}/{x}/{y}.png?key=hl3nbkeFM7zSmq9qIP2F', {
+      attribution: '&copy; MapTiler &copy; OpenStreetMap contributors',
       maxZoom: 19,
     }).addTo(petaPengendalianMap);
   }
