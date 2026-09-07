@@ -860,6 +860,16 @@ function decodeJwt(token){
 function showDashboard(){
   document.getElementById('loginOverlay').style.display = 'none';
   document.getElementById('appContent').style.display = 'flex';
+
+  /* Peta Pengendalian di-render pertama kali saat #appContent masih display:none (sebelum login),
+     jadi Leaflet ngitung ukuran container-nya 0x0 dan gagal nge-zoom ke titik koordinat.
+     Setelah dashboard beneran keliatan, paksa Leaflet ngitung ulang ukuran & posisi petanya. */
+  setTimeout(()=>{
+    if(typeof petaPengendalianMap !== 'undefined' && petaPengendalianMap){
+      petaPengendalianMap.invalidateSize();
+      if(typeof renderPetaPengendalian === 'function') renderPetaPengendalian();
+    }
+  }, 150);
 }
 
 function handleGoogleSignIn(response){
