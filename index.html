@@ -616,6 +616,8 @@
             <th>Tanggal Berakhir</th>
             <th>Kecamatan</th>
             <th>Desa/Kelurahan</th>
+            <th>Luas Terindikasi Terlantar (Ha)</th>
+            <th>Kategori</th>
           </tr>
         </thead>
         <tbody id="rekapBody-pengendalian"></tbody>
@@ -1368,6 +1370,8 @@ function renderRekapPengendalian(yearFilter, searchTerm){
       <td class="mono">${c.tanggalBerakhir ? fmtDate(c.tanggalBerakhir) : '<span class="center">&mdash;</span>'}</td>
       <td>${dash(c.kecamatan)}</td>
       <td>${dash(c.desaKel)}</td>
+      <td class="center">${c.luasTelantar ? c.luasTelantar+' Ha' : '<span class="center">&mdash;</span>'}</td>
+      <td class="center"><span class="status-badge ${STATUS_BADGE_CLASS[c.tahap]||''}">${(TAHAP_LABEL_PENGENDALIAN[c.tahap]||{label:c.tahap}).label}</span></td>
     </tr>`).join('');
 
   const yearLabel = yearFilter === 'all' ? 'semua tahun' : `tahun SK ${yearFilter}`;
