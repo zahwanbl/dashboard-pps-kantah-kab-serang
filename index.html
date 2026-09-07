@@ -928,6 +928,15 @@ const TAHAP_LABEL_SENGKETA = {
   penyelesaian:{ label:"Penyelesaian Kasus" },
 };
 
+/* Agenda Sengketa versi baru — 5 kategori simpel sesuai kebiasaan PPS Kantah Kab. Serang */
+const TAHAP_LABEL_SENGKETA_V2 = {
+  klarifikasi:{ label:"Klarifikasi" },
+  peninjauan_lokasi:{ label:"Peninjauan Lokasi" },
+  mediasi_1:{ label:"Mediasi Pertama" },
+  mediasi_2:{ label:"Mediasi Kedua" },
+  mediasi_3:{ label:"Mediasi Ketiga" },
+};
+
 const TAHAP_LABEL_PENGENDALIAN = {
   t0:{ label:"T0 · Sudah Pendayagunaan" },
   t1:{ label:"T1 · Sudah Penetapan Tanah Telantar" },
@@ -964,6 +973,8 @@ const STATUS_BADGE_CLASS = {
   pemeriksaan_setempat:'st-damai', kesimpulan:'st-damai',
   t0:'st-selesai', t1:'st-proses', t2:'st-cabut', t3:'st-banding',
   t4:'st-damai', t5:'st-proses', t6:'st-gugur',
+  klarifikasi:'st-proses', peninjauan_lokasi:'st-banding',
+  mediasi_1:'st-damai', mediasi_2:'st-damai', mediasi_3:'st-putusan',
 };
 
 /* ============ SUMBER DATA ASLI (Google Apps Script Web App) ============ */
@@ -1199,7 +1210,7 @@ const perkaraDetail = makeDetailController(
   { spotlight:'spotlight', prev:'spotlightPrev', next:'spotlightNext', pos:'spotlightPos' }
 );
 const sengketaDetail = makeDetailController(
-  ()=>casesSengketa, ()=>TAHAP_LABEL_SENGKETA,
+  ()=>casesSengketa, ()=>TAHAP_LABEL_SENGKETA_V2,
   { spotlight:'spotlightSengketa', prev:'spotlightPrevSengketa', next:'spotlightNextSengketa', pos:'spotlightPosSengketa' },
   false
 );
@@ -1492,7 +1503,7 @@ function findSidangBesok(){
   const kategoriList = [
     { nama:'Perkara', data:cases, labels:TAHAP_LABEL_PERKARA },
     { nama:'Pengendalian', data:casesPengendalian, labels:TAHAP_LABEL_PENGENDALIAN },
-    { nama:'Sengketa', data:casesSengketa, labels:TAHAP_LABEL_SENGKETA },
+    { nama:'Sengketa', data:casesSengketa, labels:TAHAP_LABEL_SENGKETA_V2 },
     { nama:'Konflik', data:casesKonflik, labels:TAHAP_LABEL_SENGKETA },
   ];
   const matches = [];
@@ -1731,11 +1742,11 @@ setupCalNav();
 
   renderBoard('board', onlyCurrentYear(cases), TAHAP_LABEL_PERKARA);
   renderBoard('board-pengendalian', casesPengendalian, TAHAP_LABEL_PENGENDALIAN);
-  renderBoard('board-sengketa', casesSengketa, TAHAP_LABEL_SENGKETA, false);
+  renderBoard('board-sengketa', casesSengketa, TAHAP_LABEL_SENGKETA_V2, false);
   renderBoard('board-konflik', onlyCurrentYear(casesKonflik), TAHAP_LABEL_SENGKETA);
   renderJadwalColumn('jadwal-perkara', cases.filter(c=> c.jadwalReal !== false && new Date(c.jadwal) >= todayMidnight()), TAHAP_LABEL_PERKARA);
   renderJadwalColumn('jadwal-pengendalian', casesPengendalian, TAHAP_LABEL_PENGENDALIAN);
-  renderJadwalColumn('jadwal-sengketa', casesSengketa.filter(c=> c.jadwalReal && new Date(c.jadwal) >= todayMidnight()), TAHAP_LABEL_SENGKETA, false);
+  renderJadwalColumn('jadwal-sengketa', casesSengketa.filter(c=> c.jadwalReal && new Date(c.jadwal) >= todayMidnight()), TAHAP_LABEL_SENGKETA_V2, false);
   perkaraDetail.resetToDefault();
   perkaraDetail.renderManual();
   sengketaDetail.resetToDefault();
@@ -1746,7 +1757,7 @@ setupCalNav();
   pengendalianDetail.renderManual();
   setupYearFilter('', cases, TAHAP_LABEL_PERKARA, yearFromJadwal, true, true);
   setupYearFilter('-pengendalian', casesPengendalian, TAHAP_LABEL_PENGENDALIAN, yearFromJadwal, true, true);
-  setupYearFilter('-sengketa', casesSengketa, TAHAP_LABEL_SENGKETA, yearFromField, true);
+  setupYearFilter('-sengketa', casesSengketa, TAHAP_LABEL_SENGKETA_V2, yearFromField, true);
   setupYearFilter('-konflik', casesKonflik, TAHAP_LABEL_SENGKETA, yearFromJadwal);
   updateNotifBtn();
   renderReminderBanner();
