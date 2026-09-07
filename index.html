@@ -1052,7 +1052,8 @@ function nearestUpcoming(list, n){
   return sortByDateAsc(realDated).slice(-n);
 }
 
-let tvUpcomingList = [];
+let tvPerkaraList = [];
+let tvSengketaList = [];
 let tvDetailIdx = 0;
 
 function indexOfNearestUpcoming(list){
@@ -1270,10 +1271,32 @@ const pengendalianDetail = makeDetailController(
   true, renderCasePengendalian
 );
 
+function tvSwitchView(tabName){
+  currentTop = tabName;
+  document.querySelectorAll('.toptab').forEach(t=> t.classList.toggle('active', t.dataset.top===tabName));
+  document.querySelectorAll('.view').forEach(v=> v.classList.remove('active'));
+  document.getElementById('view-'+tabName).classList.add('active');
+  document.body.classList.toggle('unlocked-view', !LOCKED_TABS.includes(tabName));
+}
+
+function buildTvLists(){
+  tvPerkaraList = nearestUpcoming(cases, 8);
+  tvSengketaList = nearestUpcoming(casesSengketa.filter(c=> c.jadwalReal), 8);
+}
+
 function tvRenderDetail(){
-  if(!tvUpcomingList.length) tvUpcomingList = nearestUpcoming(cases, 5);
-  const c = tvUpcomingList[tvDetailIdx % tvUpcomingList.length];
-  perkaraDetail.renderCase(c, '');
+  const step = tvSteps[tvStepIdx];
+  if(step === 'detail'){
+    if(tvPerkaraList.length === 0) return;
+    const c = tvPerkaraList[tvDetailIdx % tvPerkaraList.length];
+    tvSwitchView('detail');
+    perkaraDetail.renderCase(c, '');
+  } else if(step === 'detail-sengketa'){
+    if(tvSengketaList.length === 0) return;
+    const c = tvSengketaList[tvDetailIdx % tvSengketaList.length];
+    tvSwitchView('detail-sengketa');
+    sengketaDetail.renderCase(c, '');
+  }
 }
 
 function goToDetailByReg(reg, controller, tabName){
@@ -1497,7 +1520,7 @@ function setTopTab(name, resetDetail){
   document.getElementById('view-'+name).classList.add('active');
   document.body.classList.toggle('unlocked-view', !LOCKED_TABS.includes(name));
   if(name==='detail'){ if(tvMode){ tvRenderDetail(); } else { if(resetDetail) perkaraDetail.resetToDefault(); perkaraDetail.renderManual(); } }
-  if(name==='detail-sengketa'){ if(resetDetail) sengketaDetail.resetToDefault(); sengketaDetail.renderManual(); }
+  if(name==='detail-sengketa'){ if(tvMode){ tvRenderDetail(); } else { if(resetDetail) sengketaDetail.resetToDefault(); sengketaDetail.renderManual(); } }
   if(name==='detail-konflik'){ if(resetDetail) konflikDetail.resetToDefault(); konflikDetail.renderManual(); }
   if(name==='detail-pengendalian'){ if(resetDetail) pengendalianDetail.resetToDefault(); pengendalianDetail.renderManual(); }
   if(name==='pengendalian'){ renderPetaPengendalian(); }
@@ -1506,7 +1529,7 @@ document.querySelectorAll('.toptab').forEach(t=>{
   t.addEventListener('click', ()=>{ if(!tvMode) setTopTab(t.dataset.top); });
 });
 
-const tvSteps = ['jadwal','detail'];
+const tvSteps = ['jadwal','detail','detail-sengketa'];
 let tvStepIdx = 0;
 let tvMode = false;
 let tvTimer = null;
@@ -1515,18 +1538,20 @@ const sw = document.getElementById('tvSwitch');
 /* Hitung berapa lama halaman ini perlu ditampilin, berdasarkan seberapa panjang kontennya */
 function computeTvStepDuration(){
   const active = document.querySelector('.view.active');
-  if(!active) return 8000;
+  const isJadwal = currentTop === 'jadwal';
+  const baseMin = isJadwal ? 18000 : 13000; // Jadwal Mendatang dikasih waktu ekstra, infonya lebih banyak (2 kolom)
+  if(!active) return baseMin;
   let maxOverflow = 0;
   active.querySelectorAll('.col-body, .timeline, .spotlight').forEach(el=>{
     const overflow = el.scrollHeight - el.clientHeight;
     if(overflow > maxOverflow) maxOverflow = overflow;
   });
-  if(maxOverflow <= 4) return 8000; // konten muat 1 layar, cukup kasih waktu baca standar
+  if(maxOverflow <= 4) return baseMin; // konten muat 1 layar, cukup kasih waktu baca standar
   const scrollPxPerSecond = 0.6 * 60; // samain sama kecepatan startAutoScroll (0.6px / frame, ~60fps)
   const scrollTimeMs = (maxOverflow / scrollPxPerSecond) * 1000;
-  const pauseAtBottomMs = 2200; // jeda pas nyampe bawah sebelum balik ke atas
-  const buffer = 3000;
-  return Math.min(30000, Math.max(9000, scrollTimeMs + pauseAtBottomMs + buffer));
+  const pauseAtBottomMs = 3000; // jeda pas nyampe bawah sebelum balik ke atas
+  const buffer = 4000;
+  return Math.min(35000, Math.max(baseMin, scrollTimeMs + pauseAtBottomMs + buffer));
 }
 
 function tvScheduleNext(){
@@ -1534,18 +1559,32 @@ function tvScheduleNext(){
   tvTimer = setTimeout(tvTick, computeTvStepDuration());
 }
 
+function tvListForStep(step){
+  if(step === 'detail') return tvPerkaraList;
+  if(step === 'detail-sengketa') return tvSengketaList;
+  return null; // 'jadwal' ga punya "list kasus", cuma 1 tampilan doang
+}
+
 function tvTick(){
   const step = tvSteps[tvStepIdx];
-  if(step==='detail'){
+  const list = tvListForStep(step);
+  if(list){
     tvDetailIdx++;
-    if(tvDetailIdx < tvUpcomingList.length){
+    if(tvDetailIdx < list.length){
       tvRenderDetail();
       tvScheduleNext();
       return;
     }
     tvDetailIdx = 0;
   }
-  tvStepIdx = (tvStepIdx+1) % tvSteps.length;
+  // pindah ke tahap berikutnya (urutan tetap: jadwal -> detail -> detail-sengketa -> jadwal -> ...)
+  // kalau tahap berikutnya kosong datanya, lewatin aja biar ga macet nampilin "belum ada data" kelamaan
+  let guard = 0;
+  do{
+    tvStepIdx = (tvStepIdx+1) % tvSteps.length;
+    guard++;
+  } while(guard < tvSteps.length && tvListForStep(tvSteps[tvStepIdx]) && tvListForStep(tvSteps[tvStepIdx]).length === 0);
+  tvDetailIdx = 0;
   setTopTab(tvSteps[tvStepIdx]);
   tvScheduleNext();
 }
@@ -1558,13 +1597,15 @@ sw.addEventListener('click', ()=>{
   if(tvMode){
     tvStepIdx = 0;
     tvDetailIdx = 0;
-    tvUpcomingList = nearestUpcoming(cases, 5);
+    buildTvLists();
     setTopTab(tvSteps[0]);
     tvScheduleNext();
     startAutoScroll();
   } else {
     stopAutoScroll();
     perkaraDetail.resetToDefault();
+    sengketaDetail.resetToDefault();
+    tvSwitchView('detail');
     perkaraDetail.renderManual();
   }
 });
