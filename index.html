@@ -1127,8 +1127,14 @@ function toListOrText(text){
   let items = text.split('\n').map(s=>s.trim()).filter(Boolean).map(s=> s.replace(/^[-•]\s*/, ''));
 
   if(items.length <= 1){
-    const numbered = text.split(/(?=\d+\.\s)/).map(s=>s.trim()).filter(Boolean);
-    if(numbered.length > 1) items = numbered;
+    // Cuma anggap ini "list bernomor" kalau ketemu BENERAN pola "1. " dan "2." dua-duanya
+    // (bukan sekadar 1 angka nyasar di tengah kalimat, misal tahun "...2002. Selanjutnya...")
+    const markerRegex = /(?<!\d)([1-9]\d?)\.\s/g;
+    const markerNums = [...text.matchAll(markerRegex)].map(m=> parseInt(m[1],10));
+    if(markerNums.includes(1) && markerNums.includes(2)){
+      const numbered = text.split(/(?<!\d)(?=[1-9]\d?\.\s)/).map(s=>s.trim()).filter(Boolean);
+      if(numbered.length > 1) items = numbered;
+    }
   }
   if(items.length <= 1){
     const bySemicolon = text.split(/;\s*/).map(s=>s.trim()).filter(Boolean);
