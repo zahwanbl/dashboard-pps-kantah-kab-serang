@@ -1122,7 +1122,7 @@ function renderMapslot(c){
 }
 
 /* Bikin 1 "controller" detail buat 1 kategori — dipakai bareng buat Perkara, Sengketa, Konflik */
-function makeDetailController(getDataset, getLabels, ids, showReg){
+function makeDetailController(getDataset, getLabels, ids, showReg, customRenderCase){
   showReg = showReg !== false;
   let sorted = [];
   let index = 0;
@@ -1138,7 +1138,7 @@ function makeDetailController(getDataset, getLabels, ids, showReg){
     index = indexOfNearestUpcoming(sorted);
   }
 
-  function renderCase(c, navText){
+  const renderCase = customRenderCase || function(c, navText){
     const labels = getLabels();
     const info = labels[c.tahap] || { label: c.tahap };
     const showLawan = c.lawan && c.lawan !== '-';
@@ -1159,7 +1159,7 @@ function makeDetailController(getDataset, getLabels, ids, showReg){
     `;
     const posEl = document.getElementById(ids.pos);
     if(posEl) posEl.textContent = navText || '';
-  }
+  };
 
   function renderManual(){
     refreshSorted(); // cuma nyegerin data, POSISI (index) yang lagi dilihat TETAP dipertahankan
@@ -1207,9 +1207,31 @@ const konflikDetail = makeDetailController(
   ()=>casesKonflik, ()=>TAHAP_LABEL_SENGKETA,
   { spotlight:'spotlightKonflik', prev:'spotlightPrevKonflik', next:'spotlightNextKonflik', pos:'spotlightPosKonflik' }
 );
+function renderCasePengendalian(c, navText){
+  const info = TAHAP_LABEL_PENGENDALIAN[c.tahap] || { label: c.tahap };
+  document.getElementById('spotlightPengendalian').innerHTML = `
+    <div>
+      <div class="reg">${c.reg}</div>
+      <h2>${c.pihak}</h2>
+      <div class="field"><div class="label">Jenis Hak</div><div class="val">${c.jenisHak || '-'}${c.noSertipikat ? ' &middot; No. '+c.noSertipikat : ''}</div></div>
+      <div class="field"><div class="label">Letak Tanah</div><div class="val">${c.letak || '-'}</div></div>
+      <div class="field"><div class="label">Luas Hak</div><div class="val">${c.luasHak ? c.luasHak+' Ha' : '-'}${c.luasTelantar ? ' &middot; Terindikasi Terlantar: '+c.luasTelantar+' Ha' : ''}</div></div>
+      <div class="field"><div class="label">Peruntukan Sesuai SK</div><div class="val">${c.peruntukan || '-'}</div></div>
+      <div class="field"><div class="label">Penggunaan Saat Ini</div><div class="val">${c.penggunaan || '-'}</div></div>
+      <div class="field"><div class="label">Status</div><div class="val"><span class="status-badge ${STATUS_BADGE_CLASS[c.tahap]||''}">${info.label}</span></div></div>
+      ${c.catatan ? `<div class="field"><div class="label">Catatan</div><div class="val" style="white-space:pre-wrap; line-height:1.6;">${c.catatan}</div></div>` : ''}
+    </div>
+    <div class="stamp">${info.label.split('·')[0].trim()}</div>
+    ${renderMapslot(c)}
+  `;
+  const posEl = document.getElementById('spotlightPosPengendalian');
+  if(posEl) posEl.textContent = navText || '';
+}
+
 const pengendalianDetail = makeDetailController(
   ()=>casesPengendalian, ()=>TAHAP_LABEL_PENGENDALIAN,
-  { spotlight:'spotlightPengendalian', prev:'spotlightPrevPengendalian', next:'spotlightNextPengendalian', pos:'spotlightPosPengendalian' }
+  { spotlight:'spotlightPengendalian', prev:'spotlightPrevPengendalian', next:'spotlightNextPengendalian', pos:'spotlightPosPengendalian' },
+  true, renderCasePengendalian
 );
 
 function tvRenderDetail(){
