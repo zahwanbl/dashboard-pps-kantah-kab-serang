@@ -566,7 +566,6 @@
   <div class="tabs toptabs" id="topTabs">
     <div class="tab toptab active" data-top="pengendalian">Pengendalian</div>
     <div class="tab toptab" data-top="detail-pengendalian">Detail Pengendalian</div>
-    <div class="tab toptab" data-top="peta-pengendalian">Peta</div>
     <div class="tab toptab" data-top="sengketa">Sengketa</div>
     <div class="tab toptab" data-top="detail-sengketa">Detail Sengketa</div>
     <div class="tab toptab" data-top="perkara">Perkara</div>
@@ -587,11 +586,12 @@
 <main>
 
   <div class="view active" id="view-pengendalian">
-    <span class="eyebrow">Status per Kategori Tahapan (T0-T6) &middot; data asli</span>
-    <h2 class="viewtitle">Ringkasan Pengendalian (Tanah Terindikasi Terlantar)</h2>
-    <div class="board" id="board-pengendalian"></div>
+    <span class="eyebrow">Sebaran bidang tanah &middot; klik titik buat lihat detail</span>
+    <h2 class="viewtitle">Peta Tanah Terindikasi Terlantar</h2>
+    <div id="petaPengendalianInfo" class="rekap-summary"></div>
+    <div id="petaPengendalian" style="height:58vh; min-height:380px; border-radius:var(--radius); border:1px solid var(--line); overflow:hidden;"></div>
 
-    <span class="eyebrow" style="margin-top:28px; display:block;">Rekap seluruh bidang tanah</span>
+    <span class="eyebrow" style="margin-top:24px; display:block;">Rekap seluruh bidang tanah</span>
     <div class="rekap-headrow">
       <h2 class="viewtitle" style="font-size:19px; margin:0;">Rincian Pengendalian</h2>
       <div class="rekap-filters">
@@ -630,13 +630,6 @@
       </div>
     </div>
     <div class="spotlight" id="spotlightPengendalian"></div>
-  </div>
-
-  <div class="view" id="view-peta-pengendalian">
-    <span class="eyebrow">Sebaran bidang tanah &middot; klik titik buat lihat detail</span>
-    <h2 class="viewtitle">Peta Tanah Terindikasi Terlantar</h2>
-    <div id="petaPengendalianInfo" class="rekap-summary"></div>
-    <div id="petaPengendalian" style="flex:1; min-height:0; border-radius:var(--radius); border:1px solid var(--line); overflow:hidden;"></div>
   </div>
 
   <div class="view" id="view-sengketa">
@@ -1276,7 +1269,7 @@ function goToDetailByReg(reg, controller, tabName){
     if(target) goToDetailByReg(target.dataset.reg, konflikDetail, 'detail-konflik');
   });
 });
-['board-pengendalian','rekapBody-pengendalian'].forEach(id=>{
+['rekapBody-pengendalian'].forEach(id=>{
   const el = document.getElementById(id);
   if(el) el.addEventListener('click', e=>{
     const target = e.target.closest('[data-reg]');
@@ -1376,7 +1369,7 @@ function fmtDate(s){
 }
 
 let currentTop = 'pengendalian';
-const LOCKED_TABS = ['jadwal','detail','detail-sengketa','detail-konflik','detail-pengendalian','peta-pengendalian'];
+const LOCKED_TABS = ['jadwal','detail','detail-sengketa','detail-konflik','detail-pengendalian'];
 function setTopTab(name, resetDetail){
   resetDetail = resetDetail !== false; // default true: reset ke kasus terdekat, kecuali sengaja dimatiin (pas diarahin dari klik kasus/notifikasi)
   currentTop = name;
@@ -1388,7 +1381,7 @@ function setTopTab(name, resetDetail){
   if(name==='detail-sengketa'){ if(resetDetail) sengketaDetail.resetToDefault(); sengketaDetail.renderManual(); }
   if(name==='detail-konflik'){ if(resetDetail) konflikDetail.resetToDefault(); konflikDetail.renderManual(); }
   if(name==='detail-pengendalian'){ if(resetDetail) pengendalianDetail.resetToDefault(); pengendalianDetail.renderManual(); }
-  if(name==='peta-pengendalian'){ renderPetaPengendalian(); }
+  if(name==='pengendalian'){ renderPetaPengendalian(); }
 }
 document.querySelectorAll('.toptab').forEach(t=>{
   t.addEventListener('click', ()=>{ if(!tvMode) setTopTab(t.dataset.top); });
@@ -1741,7 +1734,7 @@ setupCalNav();
   }
 
   renderBoard('board', onlyCurrentYear(cases), TAHAP_LABEL_PERKARA);
-  renderBoard('board-pengendalian', casesPengendalian, TAHAP_LABEL_PENGENDALIAN);
+  renderPetaPengendalian();
   renderBoard('board-sengketa', casesSengketa, TAHAP_LABEL_SENGKETA_V2, false);
   renderBoard('board-konflik', onlyCurrentYear(casesKonflik), TAHAP_LABEL_SENGKETA);
   renderJadwalColumn('jadwal-perkara', cases.filter(c=> c.jadwalReal !== false && new Date(c.jadwal) >= todayMidnight()), TAHAP_LABEL_PERKARA);
