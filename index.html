@@ -1124,22 +1124,10 @@ function toListOrText(text){
   text = String(text).trim();
   if(!text || text === '-') return '-';
 
+  // Sengaja CUMA pecah berdasarkan baris baru (Enter) yang beneran ada di data asli.
+  // Nggak nebak-nebak dari titik/koma/penomoran di tengah kalimat — riskan salah pecah
+  // dan bisa ubah makna teks (misal angka tahun "2002." ke-anggep penomoran list).
   let items = text.split('\n').map(s=>s.trim()).filter(Boolean).map(s=> s.replace(/^[-•]\s*/, ''));
-
-  if(items.length <= 1){
-    // Cuma anggap ini "list bernomor" kalau ketemu BENERAN pola "1. " dan "2." dua-duanya
-    // (bukan sekadar 1 angka nyasar di tengah kalimat, misal tahun "...2002. Selanjutnya...")
-    const markerRegex = /(?<!\d)([1-9]\d?)\.\s/g;
-    const markerNums = [...text.matchAll(markerRegex)].map(m=> parseInt(m[1],10));
-    if(markerNums.includes(1) && markerNums.includes(2)){
-      const numbered = text.split(/(?<!\d)(?=[1-9]\d?\.\s)/).map(s=>s.trim()).filter(Boolean);
-      if(numbered.length > 1) items = numbered;
-    }
-  }
-  if(items.length <= 1){
-    const bySemicolon = text.split(/;\s*/).map(s=>s.trim()).filter(Boolean);
-    if(bySemicolon.length > 1) items = bySemicolon;
-  }
 
   if(items.length <= 1) return text; // tetep 1 item, biarin jadi teks biasa
   return '<ul style="margin:2px 0 0; padding-left:18px;">' + items.map(it=> `<li style="margin-bottom:4px;">${it}</li>`).join('') + '</ul>';
