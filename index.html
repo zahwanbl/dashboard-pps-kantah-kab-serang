@@ -1384,7 +1384,7 @@ function renderRekapPengendalian(yearFilter, searchTerm, kecamatanFilter, desaFi
   const tbody = document.getElementById('rekapBody-pengendalian');
   let filtered = [...casesPengendalian];
   if(yearFilter !== 'all'){
-    filtered = filtered.filter(c=> String(new Date(c.jadwal).getFullYear()) === yearFilter);
+    filtered = filtered.filter(c=> c.jadwal && String(new Date(c.jadwal).getFullYear()) === yearFilter);
   }
   if(kecamatanFilter){
     filtered = filtered.filter(c=> c.kecamatan === kecamatanFilter);
@@ -1429,7 +1429,9 @@ function renderRekapPengendalian(yearFilter, searchTerm, kecamatanFilter, desaFi
 }
 
 function setupPengendalianTable(){
-  const years = [...new Set(casesPengendalian.map(c=> String(new Date(c.jadwal).getFullYear())))].sort();
+  const years = [...new Set(
+    casesPengendalian.filter(c=> c.jadwal).map(c=> String(new Date(c.jadwal).getFullYear()))
+  )].sort();
   const sel = document.getElementById('rekapYearFilter-pengendalian');
   sel.innerHTML = `<option value="all">Semua Tahun</option>` +
     years.map(y=> `<option value="${y}">${y}</option>`).join('');
