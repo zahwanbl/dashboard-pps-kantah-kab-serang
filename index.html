@@ -319,6 +319,10 @@
     background:var(--bg-alt); font-weight:600; text-transform:uppercase;
     font-size:10.5px; letter-spacing:.4px; color:var(--ink-soft); text-align:center;
   }
+  .sortable-th{ cursor:pointer; user-select:none; white-space:nowrap; }
+  .sortable-th:hover{ background:var(--gold-soft); color:var(--ink); }
+  .sortable-th .sort-arrow{ margin-left:4px; opacity:.5; }
+  .sortable-th.sort-active .sort-arrow{ opacity:1; color:var(--gold); }
   .rekap-table td.mono{ font-family:'IBM Plex Mono',monospace; white-space:nowrap; font-size:12px; }
   .rekap-table td.center{ text-align:center; color:var(--ink-faint); }
   .rekap-table tbody tr:nth-child(even){ background: rgba(184,134,43,0.05); }
@@ -608,16 +612,16 @@
         <thead>
           <tr>
             <th>No</th>
-            <th>Nama Pemegang Hak</th>
-            <th>No SK</th>
-            <th>Tanggal SK</th>
-            <th>Nomor Sertipikat</th>
-            <th>Tanggal Terbit</th>
-            <th>Tanggal Berakhir</th>
-            <th>Kecamatan</th>
-            <th>Desa/Kelurahan</th>
-            <th>Luas Terindikasi Terlantar (Ha)</th>
-            <th>Kategori</th>
+            <th class="sortable-th" data-sort-key="pihak">Nama Pemegang Hak</th>
+            <th class="sortable-th" data-sort-key="noSK">No SK</th>
+            <th class="sortable-th" data-sort-key="tanggalSK">Tanggal SK</th>
+            <th class="sortable-th" data-sort-key="noSertipikat">Nomor Sertipikat</th>
+            <th class="sortable-th" data-sort-key="tanggalTerbit">Tanggal Terbit</th>
+            <th class="sortable-th" data-sort-key="tanggalBerakhir">Tanggal Berakhir</th>
+            <th class="sortable-th" data-sort-key="kecamatan">Kecamatan</th>
+            <th class="sortable-th" data-sort-key="desaKel">Desa/Kelurahan</th>
+            <th class="sortable-th" data-sort-key="luasTelantar">Luas Terindikasi Terlantar (Ha)</th>
+            <th class="sortable-th" data-sort-key="tahap">Kategori</th>
           </tr>
         </thead>
         <tbody id="rekapBody-pengendalian"></tbody>
@@ -1350,6 +1354,9 @@ function renderRekap(suffix, dataset, labels, yearFilter, searchTerm, yearOf, si
     `Menampilkan <strong>${filtered.length} kasus</strong> &middot; ${yearLabel}${searchLabel}`;
 }
 
+let pengendalianSortKey = null;
+let pengendalianSortDir = 1; // 1 = naik, -1 = turun
+
 function renderRekapPengendalian(yearFilter, searchTerm){
   yearFilter = yearFilter || 'all';
   searchTerm = (searchTerm || '').trim().toLowerCase();
@@ -1362,6 +1369,13 @@ function renderRekapPengendalian(yearFilter, searchTerm){
     filtered = filtered.filter(c=>
       `${c.pihak} ${c.jenisHak} ${c.noSK} ${c.noSertipikat} ${c.kecamatan} ${c.desaKel}`.toLowerCase().includes(searchTerm)
     );
+  }
+  if(pengendalianSortKey){
+    filtered.sort((a,b)=>{
+      const va = (a[pengendalianSortKey] || '').toString().toLowerCase();
+      const vb = (b[pengendalianSortKey] || '').toString().toLowerCase();
+      return va.localeCompare(vb, 'id') * pengendalianSortDir;
+    });
   }
   const dash = v => v ? v : '<span class="center">&mdash;</span>';
   tbody.innerHTML = filtered.map((c,i)=> `
@@ -1395,6 +1409,25 @@ function setupPengendalianTable(){
   const apply = ()=> renderRekapPengendalian(sel.value, search.value);
   sel.addEventListener('change', apply);
   search.addEventListener('input', apply);
+
+  document.querySelectorAll('#view-pengendalian .sortable-th').forEach(th=>{
+    th.innerHTML += ' <span class="sort-arrow">&#8645;</span>';
+    th.addEventListener('click', ()=>{
+      const key = th.dataset.sortKey;
+      if(pengendalianSortKey === key){
+        pengendalianSortDir *= -1; // klik lagi di kolom yang sama = balik arah
+      } else {
+        pengendalianSortKey = key;
+        pengendalianSortDir = 1;
+      }
+      document.querySelectorAll('#view-pengendalian .sortable-th').forEach(t=>{
+        t.classList.toggle('sort-active', t===th);
+        t.querySelector('.sort-arrow').innerHTML = t===th ? (pengendalianSortDir===1 ? '&#8593;' : '&#8595;') : '&#8645;';
+      });
+      apply();
+    });
+  });
+
   apply();
 }
 
