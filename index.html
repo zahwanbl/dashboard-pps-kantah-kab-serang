@@ -194,7 +194,7 @@
   }
   .timeline{ margin-top:18px; display:flex; flex-direction:column; flex:1; min-height:0; overflow-y:auto; }
   .jadwalgrid{
-    margin-top:18px; display:grid; grid-template-columns: repeat(3, 1fr); gap:14px;
+    margin-top:18px; display:grid; grid-template-columns: repeat(2, 1fr); gap:14px;
     flex:1; min-height:0;
   }
   .jrow{
@@ -797,10 +797,6 @@
       <div class="col">
         <div class="col-head">Perkara</div>
         <div class="col-body" id="jadwal-perkara"></div>
-      </div>
-      <div class="col">
-        <div class="col-head">Pengendalian</div>
-        <div class="col-body" id="jadwal-pengendalian"></div>
       </div>
       <div class="col">
         <div class="col-head">Sengketa</div>
@@ -1867,7 +1863,6 @@ setupCalNav();
   renderBoard('board-sengketa', casesSengketa, TAHAP_LABEL_SENGKETA_V2, false);
   renderBoard('board-konflik', onlyCurrentYear(casesKonflik), TAHAP_LABEL_SENGKETA);
   renderJadwalColumn('jadwal-perkara', cases.filter(c=> c.jadwalReal !== false && new Date(c.jadwal) >= todayMidnight()), TAHAP_LABEL_PERKARA);
-  renderJadwalColumn('jadwal-pengendalian', casesPengendalian, TAHAP_LABEL_PENGENDALIAN);
   renderJadwalColumn('jadwal-sengketa', casesSengketa.filter(c=> c.jadwalReal && new Date(c.jadwal) >= todayMidnight()), TAHAP_LABEL_SENGKETA_V2, false);
   perkaraDetail.resetToDefault();
   perkaraDetail.renderManual();
