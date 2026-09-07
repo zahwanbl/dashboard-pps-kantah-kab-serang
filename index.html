@@ -648,7 +648,7 @@
   </div>
 
   <div class="view" id="view-sengketa">
-    <span class="eyebrow">Status per tahap &middot; data asli</span>
+    <span class="eyebrow">Status per tahap</span>
     <h2 class="viewtitle">Ringkasan Sengketa Berjalan</h2>
     <div class="board" id="board-sengketa"></div>
 
@@ -729,7 +729,7 @@
   </div>
 
   <div class="view" id="view-konflik">
-    <span class="eyebrow">Status per tahap &middot; belum ada data</span>
+    <span class="eyebrow">Status per tahap</span>
     <h2 class="viewtitle">Ringkasan Konflik Berjalan</h2>
     <div class="board" id="board-konflik"></div>
 
@@ -1117,6 +1117,28 @@ function renderPetaPengendalian(){
   setTimeout(()=> petaPengendalianMap.invalidateSize(), 100);
 }
 
+/* Ubah teks yang isinya lebih dari 1 "item" (dipisah baris baru, penomoran "1. ... 2. ...", atau titik koma)
+   jadi daftar bullet point rapi. Kalau cuma 1 item / teks biasa, tampilin apa adanya (nggak dipaksa jadi list). */
+function toListOrText(text){
+  if(!text) return '-';
+  text = String(text).trim();
+  if(!text || text === '-') return '-';
+
+  let items = text.split('\n').map(s=>s.trim()).filter(Boolean).map(s=> s.replace(/^[-•]\s*/, ''));
+
+  if(items.length <= 1){
+    const numbered = text.split(/(?=\d+\.\s)/).map(s=>s.trim()).filter(Boolean);
+    if(numbered.length > 1) items = numbered;
+  }
+  if(items.length <= 1){
+    const bySemicolon = text.split(/;\s*/).map(s=>s.trim()).filter(Boolean);
+    if(bySemicolon.length > 1) items = bySemicolon;
+  }
+
+  if(items.length <= 1) return text; // tetep 1 item, biarin jadi teks biasa
+  return '<ul style="margin:2px 0 0; padding-left:18px;">' + items.map(it=> `<li style="margin-bottom:4px;">${it}</li>`).join('') + '</ul>';
+}
+
 function renderMapslot(c){
   if(c.lat && c.lng){
     const src = `https://www.google.com/maps?q=${c.lat},${c.lng}&output=embed`;
@@ -1166,12 +1188,12 @@ function makeDetailController(getDataset, getLabels, ids, showReg, customRenderC
       <div>
         ${showReg ? `<div class="reg">${c.reg}</div>` : ''}
         <h2>${c.pihak}${showLawan ? ` <span style="color:var(--ink-faint); font-weight:400;">vs</span> ${c.lawan}` : ''}</h2>
-        <div class="field"><div class="label">Objek</div><div class="val">${c.objek}</div></div>
+        <div class="field"><div class="label">Objek</div><div class="val">${toListOrText(c.objek)}</div></div>
         <div class="field"><div class="label">Letak Tanah</div><div class="val">${c.letak || '-'}</div></div>
         ${c.agenda !== undefined ? `<div class="field"><div class="label">Agenda</div><div class="val">${c.agenda || '&mdash; belum tercatat'}</div></div>` : ''}
         ${showJadwalField ? `<div class="field"><div class="label">Jadwal</div><div class="val">${c.jadwalReal ? fmtDate(c.jadwal) : '&mdash; belum tercatat'}</div></div>` : ''}
         <div class="field"><div class="label">Status</div><div class="val"><span class="status-badge ${STATUS_BADGE_CLASS[c.tahap]||''}">${info.label}</span></div></div>
-        ${c.catatan ? `<div class="field"><div class="label">Catatan</div><div class="val" style="white-space:pre-wrap;">${c.catatan}</div></div>` : ''}
+        ${c.catatan ? `<div class="field"><div class="label">Catatan</div><div class="val">${toListOrText(c.catatan)}</div></div>` : ''}
       </div>
       <div class="stamp">${info.label.toUpperCase()}</div>
       ${renderMapslot(c)}
@@ -1240,10 +1262,10 @@ function renderCasePengendalian(c, navText){
       <div class="field"><div class="label">Masa Berlaku Sertipikat</div><div class="val">${masaBerlaku}</div></div>
       <div class="field"><div class="label">Letak Tanah</div><div class="val">${c.letak || '-'}</div></div>
       <div class="field"><div class="label">Luas Hak</div><div class="val">${c.luasHak ? c.luasHak+' Ha' : '-'}${c.luasTelantar ? ' &middot; Terindikasi Terlantar: '+c.luasTelantar+' Ha' : ''}</div></div>
-      <div class="field"><div class="label">Peruntukan Sesuai SK</div><div class="val">${c.peruntukan || '-'}</div></div>
-      <div class="field"><div class="label">Penggunaan Saat Ini</div><div class="val">${c.penggunaan || '-'}</div></div>
+      <div class="field"><div class="label">Peruntukan Sesuai SK</div><div class="val">${toListOrText(c.peruntukan)}</div></div>
+      <div class="field"><div class="label">Penggunaan Saat Ini</div><div class="val">${toListOrText(c.penggunaan)}</div></div>
       <div class="field"><div class="label">Status</div><div class="val"><span class="status-badge ${STATUS_BADGE_CLASS[c.tahap]||''}">${info.label}</span></div></div>
-      ${c.catatan ? `<div class="field"><div class="label">Catatan</div><div class="val" style="white-space:pre-wrap; line-height:1.6;">${c.catatan}</div></div>` : ''}
+      ${c.catatan ? `<div class="field"><div class="label">Catatan</div><div class="val" style="line-height:1.6;">${toListOrText(c.catatan)}</div></div>` : ''}
     </div>
     <div class="stamp">${info.label.split('·')[0].trim()}</div>
     ${renderMapslot(c)}
@@ -1636,11 +1658,12 @@ function renderReminderBanner(){
 
   list.innerHTML = matches.map(m=>{
     const clickable = !!REMINDER_TARGET[m.kategori];
+    const showReg = m.kategori !== 'Sengketa' && m.kategori !== 'Konflik';
     return `<div class="reminder-item${clickable ? ' clickable' : ''}" ${clickable ? `data-reg="${m.reg}" data-kat="${m.kategori}"` : ''}>
       <span class="kat">${m.kategori}</span>
       <span class="info">
         <span class="agenda-main">${m.agenda}</span>
-        <span class="sub">${m.reg} &middot; ${m.pihak} vs ${m.lawan}</span>
+        <span class="sub">${showReg ? m.reg+' &middot; ' : ''}${pihakLawan(m)}</span>
       </span>
     </div>`;
   }).join('');
@@ -1693,7 +1716,7 @@ function maybeSendBrowserNotification(matches){
   let lastSent = null;
   try{ lastSent = localStorage.getItem('reminderSentDate'); }catch(e){}
   if(lastSent === today) return;
-  const body = matches.map(m=> `${m.kategori}: ${m.pihak} vs ${m.lawan} (${m.agenda})`).join('\n');
+  const body = matches.map(m=> `${m.kategori}: ${pihakLawan(m)} (${m.agenda})`).join('\n');
   try{
     new Notification('Reminder: Ada Sidang Besok', { body });
     localStorage.setItem('reminderSentDate', today);
@@ -1793,18 +1816,23 @@ function renderCalDayDetail(dateStr, sidang){
   const items = document.getElementById('calDayItems');
   wrap.style.display = 'block';
   title.textContent = `Sidang tanggal ${fmtDate(dateStr)} (${sidang.length} kasus)`;
-  items.innerHTML = sidang.map(s=>`
+  items.innerHTML = sidang.map(s=>{
+    const showReg = s.kategoriKey !== 'sengketa' && s.kategoriKey !== 'konflik'; // Sengketa/Konflik ga punya nomor register resmi
+    return `
     <div class="cal-daydetail-item">
       <div class="kat">${s.kategoriNama}</div>
-      <div class="pihak">${s.reg} &middot; ${s.pihak} vs ${s.lawan}</div>
+      <div class="pihak">${showReg ? s.reg+' &middot; ' : ''}${pihakLawan(s)}</div>
       <div class="meta">${s.objek}</div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 }
 
 document.getElementById('calTodayBtn').addEventListener('click', ()=>{
   const now = new Date();
   calYear = now.getFullYear();
   calMonth = now.getMonth();
+  calSelectedDate = null;
+  document.getElementById('calDayDetail').style.display = 'none';
   renderCalendar();
 });
 document.getElementById('calMonthSelect').addEventListener('change', e=>{
