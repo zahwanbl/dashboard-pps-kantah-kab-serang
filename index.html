@@ -1602,12 +1602,25 @@ function tvTick(){
   tvScheduleNext();
 }
 
+function masukFullscreen(){
+  const el = document.documentElement;
+  const req = el.requestFullscreen || el.webkitRequestFullscreen || el.msRequestFullscreen;
+  if(req) req.call(el).catch(()=>{}); // kalau browser nolak (misal butuh interaksi user), diemin aja, ga masalah
+}
+function keluarFullscreen(){
+  const isFullscreen = document.fullscreenElement || document.webkitFullscreenElement;
+  if(!isFullscreen) return;
+  const exit = document.exitFullscreen || document.webkitExitFullscreen || document.msExitFullscreen;
+  if(exit) exit.call(document).catch(()=>{});
+}
+
 sw.addEventListener('click', ()=>{
   tvMode = !tvMode;
   sw.classList.toggle('on', tvMode);
   document.body.classList.toggle('tv-lock', tvMode);
   clearTimeout(tvTimer); // jaga-jaga: matiin dulu timer lama kalau ada, sebelum mulai yang baru
   if(tvMode){
+    masukFullscreen();
     tvStepIdx = 0;
     tvDetailIdx = 0;
     buildTvLists();
@@ -1615,11 +1628,26 @@ sw.addEventListener('click', ()=>{
     tvScheduleNext();
     startAutoScroll();
   } else {
+    keluarFullscreen();
     stopAutoScroll();
     perkaraDetail.resetToDefault();
     sengketaDetail.resetToDefault();
     tvSwitchView('detail');
     perkaraDetail.renderManual();
+  }
+});
+
+// kalau user keluar fullscreen manual (ESC atau tombol TV), Mode TV ikut otomatis dimatiin biar sinkron
+document.addEventListener('fullscreenchange', ()=>{
+  const masihFullscreen = document.fullscreenElement;
+  if(!masihFullscreen && tvMode){
+    sw.click(); // trigger logic yang sama kayak klik toggle manual, biar semuanya ke-reset konsisten
+  }
+});
+document.addEventListener('webkitfullscreenchange', ()=>{
+  const masihFullscreen = document.webkitFullscreenElement;
+  if(!masihFullscreen && tvMode){
+    sw.click();
   }
 });
 
