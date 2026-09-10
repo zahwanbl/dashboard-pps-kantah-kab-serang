@@ -1652,7 +1652,7 @@ function tickClock(){
   const now = new Date();
   document.getElementById('clockTime').textContent = now.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
   document.getElementById('clockDate').textContent = now.toLocaleDateString('id-ID',{ weekday:'long', day:'numeric', month:'long', year:'numeric' });
-  document.getElementById('lastUpdate').textContent = 'Terakhir diperbarui: ' + now.toLocaleTimeString('id-ID');
+  document.getElementById('lastUpdate').textContent = 'Terakhir diperbarui: ' + now.toLocaleDateString('id-ID', { day:'numeric', month:'long', year:'numeric' });
 }
 tickClock(); setInterval(tickClock, 1000*30);
 
