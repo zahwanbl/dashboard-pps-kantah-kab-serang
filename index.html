@@ -599,7 +599,7 @@
     <span class="eyebrow">Sebaran bidang tanah &middot; klik titik buat lihat detail</span>
     <h2 class="viewtitle">Peta Tanah Terindikasi Terlantar</h2>
     <div id="petaPengendalianInfo" class="rekap-summary"></div>
-    <div id="petaPengendalian" style="height:58vh; min-height:380px; border-radius:var(--radius); border:1px solid var(--line); overflow:hidden;"></div>
+    <div id="petaPengendalian" style="height:58vh; min-height:380px; border-radius:var(--radius); border:3px solid var(--gold); box-shadow:0 2px 10px rgba(0,0,0,.12); overflow:hidden;"></div>
 
     <span class="eyebrow" style="margin-top:24px; display:block;">Rekap seluruh bidang tanah</span>
     <div class="rekap-headrow">
@@ -1069,7 +1069,7 @@ function renderPetaPengendalian(){
 
   if(!petaPengendalianMap){
     petaPengendalianMap = L.map('petaPengendalian');
-    L.tileLayer('https://api.maptiler.com/maps/streets-v2/{z}/{x}/{y}.png?key=hl3nbkeFM7zSmq9qIP2F', {
+    L.tileLayer('https://api.maptiler.com/maps/bright-v2/{z}/{x}/{y}.png?key=hl3nbkeFM7zSmq9qIP2F', {
       attribution: '&copy; MapTiler &copy; OpenStreetMap contributors',
       maxZoom: 19,
     }).addTo(petaPengendalianMap);
