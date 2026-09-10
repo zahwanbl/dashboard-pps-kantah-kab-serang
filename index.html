@@ -860,16 +860,6 @@ function decodeJwt(token){
 function showDashboard(){
   document.getElementById('loginOverlay').style.display = 'none';
   document.getElementById('appContent').style.display = 'flex';
-
-  /* Peta Pengendalian di-render pertama kali saat #appContent masih display:none (sebelum login),
-     jadi Leaflet ngitung ukuran container-nya 0x0 dan gagal nge-zoom ke titik koordinat.
-     Setelah dashboard beneran keliatan, paksa Leaflet ngitung ulang ukuran & posisi petanya. */
-  setTimeout(()=>{
-    if(typeof petaPengendalianMap !== 'undefined' && petaPengendalianMap){
-      petaPengendalianMap.invalidateSize();
-      if(typeof renderPetaPengendalian === 'function') renderPetaPengendalian();
-    }
-  }, 150);
 }
 
 function handleGoogleSignIn(response){
@@ -1100,9 +1090,16 @@ function renderPetaPengendalian(){
   info.innerHTML = `Menampilkan <strong>${berTitik.length} dari ${casesPengendalian.length} bidang tanah</strong> yang sudah ada titik koordinatnya.`;
 
   const bounds = [];
+  let adaKoordinatAneh = false;
   berTitik.forEach(c=>{
     const lat = parseFloat(c.lat), lng = parseFloat(c.lng);
-    if(isNaN(lat) || isNaN(lng)) return;
+    // Validasi dasar: koordinat bumi itu Latitude -90 s.d 90, Longitude -180 s.d 180.
+    // Kalau di luar itu, kemungkinan besar salah format pas diketik di Sheets — skip aja,
+    // jangan sampe bikin peta nge-zoom ke posisi ngaco kayak kejadian sebelumnya.
+    if(isNaN(lat) || isNaN(lng) || lat < -90 || lat > 90 || lng < -180 || lng > 180){
+      adaKoordinatAneh = true;
+      return;
+    }
     const info = TAHAP_LABEL_PENGENDALIAN[c.tahap] || { label:c.tahap };
     const marker = L.marker([lat, lng]).addTo(petaPengendalianMap);
     marker.bindPopup(`<b>${c.pihak}</b><br>${c.letak}<br><span style="color:#B8862B;">${info.label}</span><br><a href="#" data-reg="${c.reg}" class="peta-popup-link">Lihat detail &rarr;</a>`);
@@ -1120,6 +1117,11 @@ function renderPetaPengendalian(){
     petaPengendalianMap.setView(bounds[0], 13);
   } else if(bounds.length > 1){
     petaPengendalianMap.fitBounds(bounds, { padding:[30,30] });
+  } else {
+    petaPengendalianMap.setView([-6.1, 106.15], 10); // semua koordinat yang ada ternyata invalid, balik ke default
+  }
+  if(adaKoordinatAneh){
+    info.innerHTML += ` <span style="color:var(--red);">&#9888;&#65039; Ada koordinat yang formatnya nggak valid (di luar rentang lat/lng bumi), titik itu di-skip. Cek lagi kolom Latitude/Longitude-nya di Sheets.</span>`;
   }
   setTimeout(()=> petaPengendalianMap.invalidateSize(), 100);
 }
