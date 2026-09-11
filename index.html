@@ -1053,6 +1053,10 @@ function renderJadwalColumn(containerId, dataset, labels, showReg){
 
 function sortByDateAsc(list){ return [...list].sort((a,b)=> new Date(a.jadwal) - new Date(b.jadwal)); }
 function todayMidnight(){ const d = new Date(); d.setHours(0,0,0,0); return d; }
+/* Jadwal Mendatang: cuma 3 hari terdekat ke depan (besok, lusa, hari ke-3), tidak termasuk hari ini */
+function jadwal3HariStart(){ const d = todayMidnight(); d.setDate(d.getDate()+1); return d; }
+function jadwal3HariEnd(){ const d = todayMidnight(); d.setDate(d.getDate()+4); return d; }
+function dalam3HariMendatang(tgl){ const t = new Date(tgl); return t >= jadwal3HariStart() && t < jadwal3HariEnd(); }
 
 function nearestUpcoming(list, n){
   const today = todayMidnight();
@@ -1060,6 +1064,12 @@ function nearestUpcoming(list, n){
   const upcoming = sortByDateAsc(realDated).filter(c=> new Date(c.jadwal) >= today);
   if(upcoming.length) return upcoming.slice(0, n);
   return sortByDateAsc(realDated).slice(-n);
+}
+
+/* Mode TV pakai jendela 3 hari yang sama dengan halaman Jadwal Mendatang */
+function next3DaysList(list){
+  const realDated = list.filter(c=> c.jadwalReal !== false);
+  return sortByDateAsc(realDated).filter(c=> dalam3HariMendatang(c.jadwal));
 }
 
 let tvPerkaraList = [];
@@ -1303,8 +1313,8 @@ function tvSwitchView(tabName){
 }
 
 function buildTvLists(){
-  tvPerkaraList = nearestUpcoming(cases, 8);
-  tvSengketaList = nearestUpcoming(casesSengketa.filter(c=> c.jadwalReal), 8);
+  tvPerkaraList = next3DaysList(cases);
+  tvSengketaList = next3DaysList(casesSengketa.filter(c=> c.jadwalReal));
 }
 
 function tvRenderDetail(){
@@ -1954,8 +1964,8 @@ setupCalNav();
   renderPetaPengendalian();
   renderBoard('board-sengketa', casesSengketa, TAHAP_LABEL_SENGKETA_V2, false);
   renderBoard('board-konflik', onlyCurrentYear(casesKonflik), TAHAP_LABEL_SENGKETA);
-  renderJadwalColumn('jadwal-perkara', cases.filter(c=> c.jadwalReal !== false && new Date(c.jadwal) >= todayMidnight()), TAHAP_LABEL_PERKARA);
-  renderJadwalColumn('jadwal-sengketa', casesSengketa.filter(c=> c.jadwalReal && new Date(c.jadwal) >= todayMidnight()), TAHAP_LABEL_SENGKETA_V2, false);
+  renderJadwalColumn('jadwal-perkara', cases.filter(c=> c.jadwalReal !== false && dalam3HariMendatang(c.jadwal)), TAHAP_LABEL_PERKARA);
+  renderJadwalColumn('jadwal-sengketa', casesSengketa.filter(c=> c.jadwalReal && dalam3HariMendatang(c.jadwal)), TAHAP_LABEL_SENGKETA_V2, false);
   perkaraDetail.resetToDefault();
   perkaraDetail.renderManual();
   sengketaDetail.resetToDefault();
