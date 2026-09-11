@@ -1020,7 +1020,7 @@ function renderBoard(containerId, dataset, labels, showReg){
     const items = dataset.filter(c=>c.tahap===key);
     const col = document.createElement('div'); col.className='col';
     const warna = STEP_COLORS[idx % STEP_COLORS.length];
-    col.innerHTML = `<div class="col-head"><span class="col-head-title"><span class="step-num" style="background:${warna};">${idx+1}</span>${labels[key].label}</span> <span class="count">${items.length}</span></div>
+    col.innerHTML = `<div class="col-head" style="border-bottom:2px solid ${warna};"><span class="col-head-title"><span class="step-num" style="background:${warna};">${idx+1}</span>${labels[key].label}</span> <span class="count">${items.length}</span></div>
       <div class="col-body">${items.map(c=>`
         <div class="card" data-reg="${c.reg}">
           ${showReg ? `<div class="reg">${c.reg}</div>` : ''}
