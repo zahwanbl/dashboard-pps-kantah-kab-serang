@@ -173,6 +173,13 @@
     display:flex; align-items:center; justify-content:space-between;
     font-weight:600; font-size:13.5px; flex-shrink:0;
   }
+  .col-head-title{ display:flex; align-items:center; gap:7px; min-width:0; }
+  .step-num{
+    flex-shrink:0; display:inline-flex; align-items:center; justify-content:center;
+    width:20px; height:20px; border-radius:50%;
+    background:var(--gold); color:#fff; font-size:11px; font-weight:700;
+    font-family:'IBM Plex Mono',monospace;
+  }
   .count{
     font-family:'IBM Plex Mono',monospace; font-size:12px;
     background:var(--ink); color:var(--paper); padding:1px 8px; border-radius:10px;
@@ -1007,10 +1014,10 @@ function renderBoard(containerId, dataset, labels, showReg){
   labels = labels || TAHAP_LABEL;
   const board = document.getElementById(containerId);
   board.innerHTML = '';
-  Object.keys(labels).forEach(key=>{
+  Object.keys(labels).forEach((key, idx)=>{
     const items = dataset.filter(c=>c.tahap===key);
     const col = document.createElement('div'); col.className='col';
-    col.innerHTML = `<div class="col-head">${labels[key].label} <span class="count">${items.length}</span></div>
+    col.innerHTML = `<div class="col-head"><span class="col-head-title"><span class="step-num">${idx+1}</span>${labels[key].label}</span> <span class="count">${items.length}</span></div>
       <div class="col-body">${items.map(c=>`
         <div class="card" data-reg="${c.reg}">
           ${showReg ? `<div class="reg">${c.reg}</div>` : ''}
