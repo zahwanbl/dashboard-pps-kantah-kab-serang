@@ -849,11 +849,20 @@
 /* ============ LOGIN GATE (Google Sign-In) ============ */
 const GOOGLE_CLIENT_ID = "86196497752-b9m99508h7qt1vfktubqprhlhpaa3tas.apps.googleusercontent.com";
 
-/* Daftar email staff PPS yang boleh akses dashboard. Tambah/hapus baris sesuai kebutuhan. */
+/* Email cadangan darurat — tetap bisa login walau Sheets/Whitelist gagal diakses */
 const WHITELIST_EMAILS = [
   "zahwaanblptr19@gmail.com",
-  // "tambahin email staff lain di sini, satu per baris, diakhiri koma",
+  "ppsbpnkabserang@gmail.com",
 ];
+/* Diisi otomatis dari tab "Whitelist" di Google Sheets tiap kali dashboard dibuka — lihat loadRealData() */
+let SHEET_WHITELIST_EMAILS = [];
+let dataLoadPromise = null;
+
+function isEmailAllowed(email){
+  const target = (email || '').toLowerCase().trim();
+  const gabungan = WHITELIST_EMAILS.concat(SHEET_WHITELIST_EMAILS);
+  return gabungan.some(e => e.toLowerCase().trim() === target);
+}
 
 function decodeJwt(token){
   const payload = token.split('.')[1];
@@ -869,7 +878,7 @@ function showDashboard(){
   document.getElementById('appContent').style.display = 'flex';
 }
 
-function handleGoogleSignIn(response){
+async function handleGoogleSignIn(response){
   const errEl = document.getElementById('loginError');
   errEl.style.display = 'none';
   let payload;
@@ -881,7 +890,8 @@ function handleGoogleSignIn(response){
     return;
   }
   const email = (payload.email || '').toLowerCase().trim();
-  const allowed = WHITELIST_EMAILS.some(e => e.toLowerCase().trim() === email);
+  try{ if(dataLoadPromise) await dataLoadPromise; }catch(e){}
+  const allowed = isEmailAllowed(email);
   if(!allowed){
     errEl.textContent = `Email ${email} belum terdaftar untuk mengakses dashboard ini. Hubungi admin PPS.`;
     errEl.style.display = 'block';
@@ -891,13 +901,16 @@ function handleGoogleSignIn(response){
   try{ sessionStorage.setItem('ppsLoggedInEmail', email); }catch(e){}
 }
 
-window.addEventListener('load', ()=>{
+window.addEventListener('load', async ()=>{
   /* Kalau sebelumnya udah pernah login (masih dalam sesi browser yang sama), langsung masuk tanpa nge-Sign In ulang */
   try{
     const savedEmail = sessionStorage.getItem('ppsLoggedInEmail');
-    if(savedEmail && WHITELIST_EMAILS.some(e => e.toLowerCase().trim() === savedEmail.toLowerCase().trim())){
-      showDashboard();
-      return;
+    if(savedEmail){
+      try{ if(dataLoadPromise) await dataLoadPromise; }catch(e){}
+      if(isEmailAllowed(savedEmail)){
+        showDashboard();
+        return;
+      }
     }
   }catch(e){}
 
@@ -1002,6 +1015,7 @@ async function loadRealData(){
     cases = json.perkara || [];
     casesSengketa = json.sengketa || [];
     casesPengendalian = json.pengendalian || [];
+    SHEET_WHITELIST_EMAILS = (json.whitelist || []).map(e=> String(e).trim());
     return true;
   }catch(err){
     console.error('Gagal ambil data Perkara/Sengketa/Pengendalian:', err);
@@ -1948,7 +1962,7 @@ function setupCalNav(){
 }
 setupCalNav();
 
-(async function bootData(){
+dataLoadPromise = (async function bootData(){
   document.querySelector('main').insertAdjacentHTML('afterbegin',
     '<div id="dataLoadingMsg" style="padding:14px 4px; color:var(--ink-soft); font-family:\'IBM Plex Mono\',monospace; font-size:12px;">Memuat data Perkara &amp; Sengketa dari Google Sheets...</div>');
 
