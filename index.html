@@ -250,6 +250,7 @@
   .navbtn:disabled:hover{ background:var(--paper); color:var(--ink); border-color:var(--line); }
   .navpos{ font-family:'IBM Plex Mono',monospace; font-size:10.5px; color:var(--ink-faint); white-space:nowrap; }
   body.tv-lock .spotlight-nav{ display:none; }
+  body.tv-lock .tv-tanggal{ color:var(--red) !important; font-weight:700; }
   .spotlight{
     margin-top:8px; background:var(--paper); border:1px solid var(--line);
     border-radius: var(--radius); padding: clamp(14px,2vw,26px);
@@ -1057,7 +1058,7 @@ function renderJadwalColumn(containerId, dataset, labels, showReg){
   el.innerHTML = sorted.map(c=>{
     const agenda = c.agenda || (labels ? ((labels[c.tahap] && labels[c.tahap].label) || c.tahap) : null);
     return `<div class="jrow" data-reg="${c.reg}">
-      <div class="jtgl">${fmtDate(c.jadwal)}</div>
+      <div class="jtgl tv-tanggal">${fmtDate(c.jadwal)}</div>
       <div class="jpihak">${pihakLawan(c)}</div>
       <div class="jmeta">${showReg ? c.reg + ' &middot; ' : ''}${c.objek}</div>
       ${agenda ? `<div class="jagenda">${agenda}</div>` : ''}
@@ -1229,7 +1230,7 @@ function makeDetailController(getDataset, getLabels, ids, showReg, customRenderC
         <div class="field"><div class="label">Objek</div><div class="val">${toListOrText(c.objek)}</div></div>
         <div class="field"><div class="label">Letak Tanah</div><div class="val">${c.letak || '-'}</div></div>
         ${c.agenda !== undefined ? `<div class="field"><div class="label">Agenda</div><div class="val">${c.agenda || '&mdash; belum tercatat'}</div></div>` : ''}
-        ${showJadwalField ? `<div class="field"><div class="label">Jadwal</div><div class="val">${c.jadwalReal ? fmtDate(c.jadwal) : '&mdash; belum tercatat'}</div></div>` : ''}
+        ${showJadwalField ? `<div class="field"><div class="label">Jadwal</div><div class="val tv-tanggal">${c.jadwalReal ? fmtDate(c.jadwal) : '&mdash; belum tercatat'}</div></div>` : ''}
         <div class="field"><div class="label">Status</div><div class="val"><span class="status-badge ${STATUS_BADGE_CLASS[c.tahap]||''}">${info.label}</span></div></div>
         ${c.catatan ? `<div class="field"><div class="label">Catatan</div><div class="val">${toListOrText(c.catatan)}</div></div>` : ''}
       </div>
